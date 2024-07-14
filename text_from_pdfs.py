@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import pandas as pd
 import pytesseract
 from PIL import Image
 from pdf2image import convert_from_path
@@ -8,7 +9,7 @@ import os
 from openai import OpenAI
 from dotenv import load_dotenv
 
-# "gpt-3.5-turbo",
+
 MODEL = "gpt-4o"
 
 SYSTEM_PROMPT = "You are a helpful assistant who is an expert on the English language, skilled in vocabulary, " \
@@ -41,15 +42,17 @@ def ask_the_english_prof(client, user_query):
         {"role": "user", "content": user_query}
     ]
     completion = client.chat.completions.create(model=MODEL, messages=messages)
-    print(completion.choices[0].message)
     return completion.choices[0].message.content
 
 
 def perform_ocr_on_images(files, client, output_dir):
+
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     pages = []
-    for path in files:
+    n_files = len(files)
+    for pi, path in enumerate(files):
+        print(f"Processing {path}, {pi+1}/{n_files}")
         try:
             path_base, path_ext = os.path.splitext(path)
             if path_ext.lower() == ".pdf":
@@ -71,7 +74,8 @@ def perform_ocr_on_images(files, client, output_dir):
 
     write_pages(corrected_file_name, corrected_pages)
 
-    return corrected_pages
+    df = pd.DataFrame({'image_path': files, 'extracted': pages, 'corrected': corrected_pages})
+    return df
 
 
 def write_pages(output_file_name, pages):
@@ -86,10 +90,17 @@ def main():
     paths = open(input_list_path).readlines()
     paths = [p.strip() for p in paths]
 
+    # TODO: testing
+    paths = paths[:3]
+
     client = OpenAI()
 
     output_dir = os.path.join(os.getcwd(), "output")
-    perform_ocr_on_images(paths, client, output_dir)
+    df = perform_ocr_on_images(paths, client, output_dir)
+    csv_path = os.path.join(output_dir, "results.csv")
+    print(f"Outputting results to {csv_path}")
+    df.to_csv(csv_path, index=False)  
+    
 
 
 if __name__ == "__main__":
