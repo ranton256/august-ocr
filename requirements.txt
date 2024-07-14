@@ -1,2 +1,4 @@
 pytesseract
 pdf2image
+openai
+python-dotenv

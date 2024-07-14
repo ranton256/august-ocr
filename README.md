@@ -2,8 +2,9 @@
 
 ## Setup
 
-pip install -r reqiurements.txt
+brew install tesseract
+brew install poppler
 
-you may need to install libheif first.
+pip install -r requirements.txt
 
-brew install libheif
+
