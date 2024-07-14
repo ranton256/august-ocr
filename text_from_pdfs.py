@@ -90,9 +90,6 @@ def main():
     paths = open(input_list_path).readlines()
     paths = [p.strip() for p in paths]
 
-    # TODO: testing
-    paths = paths[:3]
-
     client = OpenAI()
 
     output_dir = os.path.join(os.getcwd(), "output")
