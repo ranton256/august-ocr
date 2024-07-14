@@ -2,3 +2,5 @@
 *.swp
 .env
 output/
+env/
+__pycache__/
