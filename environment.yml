@@ -1,0 +1,14 @@
+name: august-ocr 
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pytesseract
+  - pdf2image
+  - python-dotenv
+  - openai
+  - pandas
+  - opencv
+  - streamlit
+  #- pip
+  #- pip:
