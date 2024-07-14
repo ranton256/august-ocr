@@ -99,12 +99,11 @@ def extract_text(img):
     for x, y, txt in sorted_list:
         div = "\n"
         if y - last_y > 1:
+            # assume this is a new paragraph is y is different.
             div = "\n\n"
         all_text.append(div)
         all_text.append(txt)
 
-    #all_text = [x[2] for x in sorted_list]
-    #result = "\n\n".join(all_text)
     result = "".join(all_text)
     print(f"Result is length: {len(result)}")
     return result
