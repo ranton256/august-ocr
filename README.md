@@ -12,8 +12,6 @@ pip install -r requirements.txt
 
 ## Credits
 
-## Credits
-
 I took inspiration and some code snippets from various articles online:
 
 This article has a good overview of image preprocessing methods for OCR.
@@ -25,6 +23,8 @@ The article provided a great example of identifying rectangles in the image to p
 - <https://medium.com/@siromermer/extracting-text-from-images-ocr-using-opencv-pytesseract-aa5e2f7ad513>
 
 ## Future Improvements
+
+- Change the Streamlit viewer app to use actual Streamlit pages and better controls for next and previous.
 
 - Use the dewarping algorithm discussed in <https://mzucker.github.io/2016/08/15/page-dewarping.html> and implemented in <https://github.com/tachylatus/page_dewarp>.
 
