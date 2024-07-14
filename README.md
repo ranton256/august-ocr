@@ -1,14 +1,63 @@
 # Python OCR using Pytesseract, Pillow, and pdf2image
 
+## Overview
+
+This project shows how to extract text from images or PDFs using [PyTesseract](https://github.com/h/pytesseract), [Pillow](https://python-pillow.org/), and [opencv-python](https://github.com/opencv/opencv-python).
+
+It performs a number of preprocessing steps to improve the results.
+
+It augments the OCR by asking OpenAI's [GPT-4o](https://openai.com/index/hello-gpt-4o/) to correct the OCR output.
+
+There is a hand edited final document included as well with markdown formatting I used ChatGPT to help generate as well, though by hand in this case.
+
+The process is visualized with a [Streamlit](https://streamlit.io) app that shows the original image, preprocessed image, exctracted text, and corrected text for each page.
+
+The input images as well as the code and results are included in the repository.
+
+This code, text, and other original work on my part in this repo is under the MIT license.
+
+The original text by August Anton, described below, is to the best of my understanding in the public domain in the United States at this point since August who wrote it passed away in 1911.
+
+## Example Screenshot of the App
+
+![image-20240714165057654](/Users/ranton/python_ocr/screenshots/image-20240714165057654.png)
+
+
+## Background on the Text
+
+The text used in this project are photos of a brief autobiographical work by my paternal great great grandfather, August Anton. 
+
+He had quite an interesting life, including the 1848 revolution in Germany, being banned from Bremen for running a study group, immigrating to America, running a business in Birmingham where he evenutally settled. He was a master carpenter, in the literal sense of having apprenticed, worked and traveled as a journeyman, and then passed a master examination.
+
+The text was provided to me as thirty pages of photocopies by my uncle, James (Jim) Anton in 1999, a short while after my father passed away.  I believe he provided the same text to a number of his other relatives as well.
+
 ## Setup
 
+The python packages used in this project require the tesseract and poppler libraries.
+
+You can install them with Homebrew on MacOS or Linux. See the tesseract or poppler documentation for instructions for other platforms.
+
+```bash
 brew install tesseract
 brew install poppler
+```
 
-
+Setup the conda environment and install python dependencies.
+```bash
 conda env create -p ./env  -f environment.yml
+```
 
-pip install -r requirements.txt
+The final (draft) version including hand edits is in [august_anton.md](august_anton.md).
+
+You can generate a LaTex or PDF version of the combined, corrected pages like this.
+
+```bash
+# generate Latex 
+pandoc -f markdown -t latex --wrap=preserve  august_anton.md -o august_anton.tex
+
+# Generate DPF
+pandoc -f markdown -t pdf --wrap=preserve  august_anton.md -o august_anton.pdf
+```
 
 ## Credits
 
