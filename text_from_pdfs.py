@@ -195,7 +195,6 @@ def main():
     parser.add_argument("-m", "--max", help="Maximum number of documents to process", type=int, default=0)
 
     args = parser.parse_args()
-    parser.parse_args()
 
     input_list_path = "input_file_list.txt"
     paths = open(input_list_path).readlines()
