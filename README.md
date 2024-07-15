@@ -85,3 +85,4 @@ The article provided a great example of identifying rectangles in the image to p
 
 - Use the dewarping algorithm discussed in <https://mzucker.github.io/2016/08/15/page-dewarping.html> and implemented in <https://github.com/tachylatus/page_dewarp>.
 
+- Use [GPT-4o vision support]( https://platform.openai.com/docs/guides/vision) to use the image as part of the input to the correction process for the extracted text.
