@@ -3,7 +3,7 @@ import pandas as pd
 from PIL import Image
 import difflib
 from pathlib import Path
-from text_from_pdfs import get_preproc_path
+from common import get_preproc_path
 
 st.set_page_config(
     page_title="August OCR",

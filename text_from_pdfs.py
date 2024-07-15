@@ -6,6 +6,7 @@ import pandas as pd
 import pytesseract
 from PIL import Image
 from pdf2image import convert_from_path
+from common import get_preproc_path
 
 import os
 import traceback
@@ -34,13 +35,6 @@ def process_pdf(path, output_dir):
         text = process_image(image_file_name, output_dir)
         pages.append(text)
     return pages
-
-
-
-def get_preproc_path(path, output_dir):
-    path_base, path_ext = os.path.splitext(os.path.basename(path))
-    preproc_file_name = path_base + "_proc.jpg"
-    return os.path.join(output_dir, preproc_file_name)
 
 
 def process_image(path, output_dir):
