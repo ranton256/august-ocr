@@ -1,8 +1,4 @@
-pytesseract
-pdf2image
-openai
 python-dotenv
 pandas
 streamlit
-opencv
-opencv-python
+pillow
