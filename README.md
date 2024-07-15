@@ -50,8 +50,10 @@ brew install poppler
 
 Setup the conda environment and install python dependencies.
 ```bash
-conda env create -p ./env  -f environment.yml
+conda env create -p ./env  -f local_environment.yml
 ```
+
+The Streamlit app uses requirements.txt and Pip rather than conda because it has fewer dependencies, and it boots faster on Streamlit Community Cloud this way.
 
 The draft, combined version including some hand edits is in [august_anton.md](august_anton.md).
 
