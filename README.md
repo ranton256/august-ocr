@@ -1,4 +1,4 @@
-# Python OCR using Pytesseract, Pillow, and pdf2image
+# Python OCR using Pytesseract, Pillow, and openCV
 
 ## Overview
 
@@ -14,9 +14,11 @@ The process is visualized with a [Streamlit](https://streamlit.io) app that show
 
 The input images as well as the code and results are included in the repository.
 
+Note that I have code for handling input PDFs, for completeness of the example, but all of my input files are JPEG format.
+
 This code, text, and other original work on my part in this repo is under the MIT license.
 
-The original text by August Anton, described below, is to the best of my understanding in the public domain in the United States at this point since August who wrote it passed away in 1911.
+The original text by August Anton, described below, is to the best of my understanding in the public domain in the United States at this point since the author passed away in 1911.
 
 ## Example Screenshot of the App
 
@@ -30,6 +32,10 @@ The text used in this project are photos of a brief autobiographical work by my 
 He had quite an interesting life, including the 1848 revolution in Germany, being banned from Bremen for running a study group, immigrating to America, running a business in Birmingham where he evenutally settled. He was a master carpenter, in the literal sense of having apprenticed, worked and traveled as a journeyman, and then passed a master examination.
 
 The text was provided to me as thirty pages of photocopies by my uncle, James (Jim) Anton in 1999, a short while after my father passed away.  I believe he provided the same text to a number of his other relatives as well.
+
+According to [Ancestry.com](https://www.ancestry.com), 
+
+> August Fredrick Anton was born in 1830 in Zerbst, Saxony-Anhalt,  Germany, the son of Sophia and August. He married Sophia Bertha Tiebetz  in 1858 in Germany. They had six children in 13 years. He died on  January 2, 1911, in Birmingham, Alabama, having lived a long life of 81  years.
 
 ## Setup
 
