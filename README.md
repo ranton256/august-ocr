@@ -22,7 +22,7 @@ The original text by August Anton, described below, is to the best of my underst
 
 ## Example Screenshot of the App
 
-![image-20240714165057654](/Users/ranton/python_ocr/screenshots/image-20240714165057654.png)
+![image-20240714165057654](screenshots/image-20240714165057654.png)
 
 
 ## Background on the Text
