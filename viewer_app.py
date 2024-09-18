@@ -16,6 +16,13 @@ def main():
     df = pd.read_csv("output/results.csv")
     st.title("OCR Comparison App")
 
+    st.write(
+        """This project shows how to extract text from images or PDFs using PyTesseract, Pillow, and opencv-python.
+It performs a number of preprocessing steps to improve the results, and then uses OpenAI's GPT-4o to correct the OCR output.
+""")
+
+    st.write("For more information see the the [README](https://github.com/ranton256/august-ocr/blob/main/README.md).")
+
     n_pages = len(df)
     if n_pages == 0:
         st.write("No pages to show")
