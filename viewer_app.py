@@ -43,12 +43,12 @@ It performs a number of preprocessing steps to improve the results, and then use
 
     col1, col2, col3, col4, col5 = st.columns(5)
     with col1:
-        if st.button("First Page"):
+        if st.button("First Page", disabled=page == 1):
             if page > 1:
                 page = 1
                 st.query_params['page'] = page
     with col2:
-        if st.button("Previous Page"):
+        if st.button("Previous Page", disabled=page == 1):
             if page > 1:
                 page -= 1
                 st.query_params['page'] = page
@@ -56,12 +56,12 @@ It performs a number of preprocessing steps to improve the results, and then use
         st.write(f"Showing page {page} of {n_pages}")
 
     with col4:
-        if st.button("Next Page"):
+        if st.button("Next Page", disabled=page == n_pages):
             if page < n_pages:
                 page += 1
                 st.query_params['page'] = page
     with col5:
-        if st.button("Last Page"):
+        if st.button("Last Page", disabled=page == n_pages):
             if page < n_pages:
                 page = n_pages
                 st.query_params['page'] = page
