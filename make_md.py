@@ -3,7 +3,6 @@ import argparse
 import pandas as pd
 
 import os
-import traceback
 
 from openai import OpenAI
 from dotenv import load_dotenv
