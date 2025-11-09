@@ -1,10 +1,11 @@
 # Handwriting OCR Dependencies
-# These are required for the handwriting_ocr.py module using TrOCR
+# These are required for the handwriting_ocr.py module using DeepSeek-OCR
 
 # Core ML/Vision packages
-transformers>=4.30.0    # HuggingFace transformers for TrOCR
+transformers>=4.46.0    # HuggingFace transformers for DeepSeek-OCR (requires recent version)
 torch>=2.0.0            # PyTorch backend
 torchvision>=0.15.0     # Vision utilities
+accelerate>=0.20.0      # For efficient model loading
 
 # Image processing (may already be installed from main requirements)
 pillow>=9.0.0           # PIL for image handling
@@ -18,6 +19,16 @@ numpy>=1.24.0           # Numerical operations
 python-dotenv>=1.0.0    # Environment variable management
 openai>=1.0.0           # Optional: for LLM correction
 
-# Optional: For GPU acceleration
+# DeepSeek-OCR specific
+# Model size: ~5GB, requires ~8GB GPU memory for inference
+# CPU inference is supported but slower
+
+# GPU acceleration (recommended)
 # If you have CUDA installed, PyTorch will automatically use it
-# To install CPU-only version: pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+# For CPU-only: pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+
+# Note: First run will download the model from HuggingFace (~5GB)
+# Ensure you have:
+# - Sufficient disk space
+# - Good internet connection for initial download
+# - 8GB+ GPU memory (recommended) or 16GB+ system RAM for CPU inference

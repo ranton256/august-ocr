@@ -4,7 +4,7 @@ OCR Performance Benchmarking Tool
 
 This module provides tools for comparing different OCR methods:
 - Pytesseract (traditional OCR)
-- TrOCR (transformer-based handwriting OCR)
+- DeepSeek-OCR (state-of-the-art vision-language OCR, 97% accuracy)
 - With and without LLM correction
 
 Metrics calculated:
@@ -35,11 +35,11 @@ except ImportError:
     print("Warning: pytesseract not available")
 
 try:
-    from handwriting_ocr import HandwritingOCR
-    TROCR_AVAILABLE = True
+    from handwriting_ocr import DeepSeekOCR
+    DEEPSEEK_OCR_AVAILABLE = True
 except ImportError:
-    TROCR_AVAILABLE = False
-    print("Warning: TrOCR not available")
+    DEEPSEEK_OCR_AVAILABLE = False
+    print("Warning: DeepSeek-OCR not available")
 
 
 def calculate_cer(reference: str, hypothesis: str) -> float:
@@ -156,28 +156,28 @@ class OCRBenchmark:
             'processing_time': processing_time
         }
 
-    def benchmark_trocr(
+    def benchmark_deepseek_ocr(
         self,
         image_path: str,
-        model: Optional[HandwritingOCR] = None
+        model: Optional[DeepSeekOCR] = None
     ) -> Dict:
         """
-        Benchmark TrOCR on an image
+        Benchmark DeepSeek-OCR on an image
 
         Args:
             image_path: Path to image
-            model: Pre-initialized HandwritingOCR model (for efficiency)
+            model: Pre-initialized DeepSeekOCR model (for efficiency)
 
         Returns:
             Results dictionary
         """
-        if not TROCR_AVAILABLE:
-            return {"error": "TrOCR not available"}
+        if not DEEPSEEK_OCR_AVAILABLE:
+            return {"error": "DeepSeek-OCR not available"}
 
         # Initialize model if not provided
         close_model = False
         if model is None:
-            model = HandwritingOCR()
+            model = DeepSeekOCR()
             close_model = True
 
         start_time = time.time()
@@ -185,7 +185,7 @@ class OCRBenchmark:
         processing_time = time.time() - start_time
 
         return {
-            'method': 'trocr',
+            'method': 'deepseek-ocr',
             'text': result['text'],
             'processing_time': processing_time,
             'model': result['model']
@@ -194,8 +194,8 @@ class OCRBenchmark:
     def benchmark_image(
         self,
         image_path: str,
-        methods: List[str] = ['pytesseract', 'trocr'],
-        trocr_model: Optional[HandwritingOCR] = None
+        methods: List[str] = ['pytesseract', 'deepseek-ocr'],
+        deepseek_model: Optional[DeepSeekOCR] = None
     ) -> List[Dict]:
         """
         Benchmark multiple OCR methods on a single image
@@ -203,7 +203,7 @@ class OCRBenchmark:
         Args:
             image_path: Path to image
             methods: List of methods to benchmark
-            trocr_model: Pre-initialized TrOCR model
+            deepseek_model: Pre-initialized DeepSeek-OCR model
 
         Returns:
             List of result dictionaries
@@ -216,8 +216,8 @@ class OCRBenchmark:
         for method in methods:
             if method == 'pytesseract':
                 result = self.benchmark_pytesseract(image_path)
-            elif method == 'trocr':
-                result = self.benchmark_trocr(image_path, trocr_model)
+            elif method == 'deepseek-ocr':
+                result = self.benchmark_deepseek_ocr(image_path, deepseek_model)
             else:
                 print(f"Unknown method: {method}")
                 continue
@@ -251,7 +251,7 @@ class OCRBenchmark:
     def benchmark_directory(
         self,
         input_dir: str,
-        methods: List[str] = ['pytesseract', 'trocr'],
+        methods: List[str] = ['pytesseract', 'deepseek-ocr'],
         max_images: Optional[int] = None
     ) -> pd.DataFrame:
         """
@@ -275,10 +275,10 @@ class OCRBenchmark:
         image_files = sorted(image_files)[:max_images] if max_images else sorted(image_files)
         print(f"Found {len(image_files)} images")
 
-        # Initialize TrOCR model once for efficiency
-        trocr_model = None
-        if 'trocr' in methods and TROCR_AVAILABLE:
-            trocr_model = HandwritingOCR()
+        # Initialize DeepSeek-OCR model once for efficiency
+        deepseek_model = None
+        if 'deepseek-ocr' in methods and DEEPSEEK_OCR_AVAILABLE:
+            deepseek_model = DeepSeekOCR()
 
         # Benchmark each image
         all_results = []
@@ -286,7 +286,7 @@ class OCRBenchmark:
             results = self.benchmark_image(
                 str(image_path),
                 methods=methods,
-                trocr_model=trocr_model
+                deepseek_model=deepseek_model
             )
             all_results.extend(results)
 
@@ -405,8 +405,8 @@ def main():
         '--methods',
         type=str,
         nargs='+',
-        default=['pytesseract', 'trocr'],
-        choices=['pytesseract', 'trocr'],
+        default=['pytesseract', 'deepseek-ocr'],
+        choices=['pytesseract', 'deepseek-ocr'],
         help='OCR methods to benchmark'
     )
     parser.add_argument(
