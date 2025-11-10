@@ -30,7 +30,7 @@ from dotenv import load_dotenv
 # Vision/OCR imports
 try:
     import torch
-    from transformers import AutoModelForCausalLM, AutoTokenizer
+    from transformers import AutoModel, AutoTokenizer
     from transformers.dynamic_module_utils import get_imports
 
     # Monkey-patch to fix LlamaFlashAttention2 import issue
@@ -94,11 +94,13 @@ class DeepSeekOCR:
             # Load model and tokenizer
             # Use eager attention for better compatibility across transformers versions
             try:
-                self.model = AutoModelForCausalLM.from_pretrained(
+                # Load model using AutoModel (DeepSeek-OCR uses custom config)
+                # Official docs: https://github.com/deepseek-ai/DeepSeek-OCR
+                self.model = AutoModel.from_pretrained(
                     model_name,
                     trust_remote_code=True,
-                    torch_dtype=torch.bfloat16 if self.device == "cuda" else torch.float32,
-                    attn_implementation="eager"
+                    use_safetensors=True,
+                    attn_implementation="eager"  # Use eager instead of flash_attention_2 for compatibility
                 )
                 self.tokenizer = AutoTokenizer.from_pretrained(
                     model_name,
@@ -119,8 +121,13 @@ class DeepSeekOCR:
                     print(f"\n{'='*80}\n")
                 raise
 
-            self.model.to(self.device)
+            # Move model to device and set precision
+            # Official approach: model.eval().cuda().to(torch.bfloat16)
             self.model.eval()
+            if self.device == "cuda":
+                self.model = self.model.cuda().to(torch.bfloat16)
+            else:
+                self.model = self.model.to(torch.float32)
             print("DeepSeek-OCR loaded successfully!")
 
         except Exception as e:
