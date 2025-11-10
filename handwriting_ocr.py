@@ -70,10 +70,12 @@ class DeepSeekOCR:
 
         try:
             # Load model and tokenizer
+            # Use eager attention for better compatibility across transformers versions
             self.model = AutoModelForCausalLM.from_pretrained(
                 model_name,
                 trust_remote_code=True,
-                torch_dtype=torch.bfloat16 if self.device == "cuda" else torch.float32
+                torch_dtype=torch.bfloat16 if self.device == "cuda" else torch.float32,
+                attn_implementation="eager"
             )
             self.tokenizer = AutoTokenizer.from_pretrained(
                 model_name,
