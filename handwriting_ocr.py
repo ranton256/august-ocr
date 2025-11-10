@@ -254,9 +254,15 @@ class DeepSeekOCR:
 
         except Exception as e:
             import traceback
-            print(f"Error during OCR inference: {e}")
+            print(f"\n{'='*80}")
+            print(f"ERROR during OCR inference for: {image_path}")
+            print(f"{'='*80}")
+            print(f"Error: {str(e)}")
+            print(f"\nFull traceback:")
             print(traceback.format_exc())
-            text = f"[OCR Error: {str(e)}]"
+            print(f"{'='*80}\n")
+            # Re-raise the exception instead of returning it as a fake result
+            raise
 
         return {
             'text': text,
