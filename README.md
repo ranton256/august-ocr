@@ -2,19 +2,41 @@
 
 ## Overview
 
-This project shows how to extract text from images or PDFs using [PyTesseract](https://github.com/h/pytesseract), [Pillow](https://python-pillow.org/), and [opencv-python](https://github.com/opencv/opencv-python).
+This project demonstrates two approaches to OCR (Optical Character Recognition):
 
-It performs a number of preprocessing steps to improve the results.
+1. **Document OCR**: Extract text from scanned documents using [PyTesseract](https://github.com/h/pytesseract), [Pillow](https://python-pillow.org/), and [opencv-python](https://github.com/opencv/opencv-python)
+2. **Handwriting OCR**: Extract text from handwritten notes using [DeepSeek-OCR](https://huggingface.co/deepseek-ai/DeepSeek-OCR) - a state-of-the-art vision-language model with 97% accuracy
 
-It augments the OCR by asking OpenAI's [GPT-4o](https://openai.com/index/hello-gpt-4o/) to correct the OCR output.
+Both approaches use OpenAI's [GPT-4o](https://openai.com/index/hello-gpt-4o/) to correct OCR errors and improve accuracy.
 
-There is a hand edited final document included as well with markdown formatting I used ChatGPT to help generate as well, though by hand in this case.
+The project includes:
+- Image preprocessing pipelines optimized for each use case
+- Batch processing capabilities
+- Interactive [Streamlit](https://streamlit.io) viewer for comparing results
+- Benchmarking tools for measuring accuracy and performance
+- **Tutorial outline** for building similar OCR systems (see [TUTORIAL_OUTLINE.md](TUTORIAL_OUTLINE.md))
 
-The process is visualized with a [Streamlit](https://streamlit.io) app that shows the original image, preprocessed image, exctracted text, and corrected text for each page.
+The process is visualized with a Streamlit app that shows the original image, preprocessed image, extracted text, and corrected text for each page.
 
-The input images as well as the code and results are included in the repository.
+## Tutorial
 
-Note that I have code for handling input PDFs, for completeness of the example, but all of my input files are JPEG format.
+This repository serves as a comprehensive tutorial for building OCR systems. See [TUTORIAL_OUTLINE.md](TUTORIAL_OUTLINE.md) for a detailed guide covering:
+- Traditional document OCR with pytesseract
+- Handwriting recognition with DeepSeek-OCR (state-of-the-art, 97% accuracy)
+- AI-powered error correction
+- Performance benchmarking
+- Production deployment considerations
+
+## Use Cases
+
+| Feature | Document OCR | Handwriting OCR |
+|---------|--------------|----------------|
+| Input | Scanned documents, PDFs | Photos of handwritten notes |
+| Best for | Typed/printed text | Cursive or printed handwriting |
+| Challenges | Aged paper, fading | Varied angles, lighting |
+| Script | `text_from_pdfs.py` | `handwriting_ocr.py` |
+
+## License
 
 This code, text, and other original work on my part in this repo is under the MIT license.
 
@@ -39,6 +61,8 @@ According to [Ancestry.com](https://www.ancestry.com),
 
 ## Setup
 
+### System Dependencies
+
 The python packages used in this project require the tesseract and poppler libraries.
 
 You can install them with Homebrew on MacOS or Linux. See the tesseract or poppler documentation for instructions for other platforms.
@@ -48,12 +72,99 @@ brew install tesseract
 brew install poppler
 ```
 
-Setup the conda environment and install python dependencies.
+### Python Environment
+
+Setup the conda environment and install python dependencies:
+
 ```bash
-conda env create -p ./env  -f local_environment.yml
+conda env create -p ./env -f local_environment.yml
+conda activate ./env
 ```
 
-The Streamlit app uses requirements.txt and Pip rather than conda because it has fewer dependencies, and it boots faster on Streamlit Community Cloud this way.
+### Additional Dependencies for Handwriting OCR
+
+For handwriting recognition with DeepSeek-OCR, install additional packages:
+
+```bash
+pip install -r requirements_handwriting.txt
+```
+
+**Note**: DeepSeek-OCR is a large model (~5GB). First run will download the model from HuggingFace.
+- Recommended: 8GB+ GPU memory for fast inference
+- CPU inference is supported but slower (requires 16GB+ RAM)
+
+Note: The Streamlit app uses requirements.txt and Pip rather than conda because it has fewer dependencies, and it boots faster on Streamlit Community Cloud this way.
+
+### API Configuration
+
+Create a `.env` file with your OpenAI API key (required for LLM correction):
+
+```bash
+echo "OPENAI_API_KEY=your-key-here" > .env
+```
+
+## Usage
+
+### Document OCR (Pytesseract)
+
+Process scanned documents or PDFs:
+
+```bash
+python text_from_pdfs.py [--max N]
+```
+
+Results are saved to:
+- `output/results.csv` - Processing results
+- `output/extracted.txt` - Raw OCR text
+- `output/corrected.txt` - LLM-corrected text
+
+### Handwriting OCR (DeepSeek-OCR)
+
+Process photos of handwritten notes with state-of-the-art accuracy:
+
+```bash
+# Create input directory and add your handwritten note photos
+mkdir handwriting_images
+# Add your photos to handwriting_images/
+
+# Run handwriting OCR
+python handwriting_ocr.py --input handwriting_images/
+
+# Optional: with perspective correction and LLM correction
+python handwriting_ocr.py --input handwriting_images/ --perspective-correction --llm-correction
+```
+
+Results are saved to:
+- `output/handwriting_results.csv` - Processing results
+- `output/extracted_handwriting.txt` - Raw OCR text
+- `output/corrected_handwriting.txt` - Corrected text
+
+### Benchmarking
+
+Compare OCR methods and measure accuracy:
+
+```bash
+# Create ground truth template
+python benchmark.py --input handwriting_images/ --create-template
+
+# Edit ground_truth.json to add correct text for each image
+
+# Run benchmark
+python benchmark.py --input handwriting_images/ --ground-truth ground_truth.json --methods pytesseract trocr
+```
+
+### Interactive Viewer
+
+Launch the Streamlit app to view results:
+
+```bash
+streamlit run viewer_app.py
+```
+
+The app allows you to:
+- Switch between document OCR and handwriting OCR results
+- Compare original, preprocessed, extracted, and corrected versions
+- Navigate through pages with buttons or slider
 
 The draft, combined version including some hand edits is in [august_anton.md](august_anton.md).
 
