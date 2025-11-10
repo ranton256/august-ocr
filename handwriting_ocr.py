@@ -189,56 +189,73 @@ class DeepSeekOCR:
         # Convert to PIL Image for DeepSeek-OCR
         pil_image = Image.fromarray(image)
 
-        # Prepare the conversation format that DeepSeek-OCR expects
-        # DeepSeek-OCR uses a chat-based interface for OCR tasks
-        conversation = [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "image"},
-                    {"type": "text", "text": "Extract all text from this image, including any handwritten notes."}
-                ]
-            }
-        ]
-
         # Prepare inputs
         try:
-            # Apply chat template
-            prompt = self.tokenizer.apply_chat_template(
-                conversation,
-                add_generation_prompt=True,
-                tokenize=False
-            )
+            # DeepSeek-OCR uses a simple prompt format with <image> token
+            # Official format: "<image>\nFree OCR." for handwriting recognition
+            prompt = "<image>\nExtract all text from this image, including any handwritten notes."
 
-            # Process image and text
-            inputs = self.tokenizer(
-                prompt,
-                images=[pil_image],
-                return_tensors="pt"
-            )
+            # Check if model has custom infer method
+            if hasattr(self.model, 'infer'):
+                # Use the model's custom infer method
+                # Save temp image if we preprocessed it
+                import tempfile
+                temp_path = None
+                if preprocess:
+                    temp_path = tempfile.mktemp(suffix='.jpg')
+                    cv2.imwrite(temp_path, cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
+                    infer_path = temp_path
+                else:
+                    infer_path = image_path
 
-            # Move to device
-            inputs = {k: v.to(self.device) if torch.is_tensor(v) else v for k, v in inputs.items()}
-
-            # Generate text
-            with torch.no_grad():
-                outputs = self.model.generate(
-                    **inputs,
-                    max_new_tokens=2048,
-                    do_sample=False,  # Deterministic for OCR
-                    pad_token_id=self.tokenizer.eos_token_id
+                try:
+                    # Use model's infer method
+                    text = self.model.infer(
+                        self.tokenizer,
+                        prompt=prompt,
+                        image_file=infer_path,
+                        output_path=None,  # We don't need file output
+                        base_size=1024,
+                        image_size=640,
+                        crop_mode=True
+                    )
+                finally:
+                    # Clean up temp file if created
+                    if temp_path and os.path.exists(temp_path):
+                        os.remove(temp_path)
+            else:
+                # Fallback: Use standard transformers approach
+                # Process image and text together
+                inputs = self.model.build_inputs(
+                    tokenizer=self.tokenizer,
+                    image=pil_image,
+                    prompt=prompt
                 )
 
-            # Decode output
-            text = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+                # Move to device
+                inputs = {k: v.to(self.device) if torch.is_tensor(v) else v
+                         for k, v in inputs.items()}
 
-            # Extract just the OCR response (after the prompt)
-            # DeepSeek returns the full conversation, we need just the assistant's response
-            if "<｜Assistant｜>" in text:
-                text = text.split("<｜Assistant｜>")[-1].strip()
+                # Generate text
+                with torch.no_grad():
+                    outputs = self.model.generate(
+                        **inputs,
+                        max_new_tokens=2048,
+                        do_sample=False,  # Deterministic for OCR
+                        pad_token_id=self.tokenizer.eos_token_id if self.tokenizer.eos_token_id else 0
+                    )
+
+                # Decode output
+                text = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+                # Clean up the output - remove the prompt if it's echoed back
+                if prompt in text:
+                    text = text.replace(prompt, "").strip()
 
         except Exception as e:
+            import traceback
             print(f"Error during OCR inference: {e}")
+            print(traceback.format_exc())
             text = f"[OCR Error: {str(e)}]"
 
         return {
