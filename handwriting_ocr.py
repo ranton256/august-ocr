@@ -29,13 +29,35 @@ from dotenv import load_dotenv
 
 # Vision/OCR imports
 try:
+    import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer
     from transformers.dynamic_module_utils import get_imports
-    import torch
+
+    # Monkey-patch to fix LlamaFlashAttention2 import issue
+    # DeepSeek-OCR model code tries to import this, but we're using eager attention
+    try:
+        from transformers.models.llama.modeling_llama import LlamaFlashAttention2
+    except ImportError:
+        # Create a dummy class if LlamaFlashAttention2 doesn't exist
+        # This is safe because we use attn_implementation="eager"
+        import sys
+        from unittest.mock import MagicMock
+
+        # Mock the LlamaFlashAttention2 class
+        if 'transformers.models.llama.modeling_llama' in sys.modules:
+            llama_module = sys.modules['transformers.models.llama.modeling_llama']
+            if not hasattr(llama_module, 'LlamaFlashAttention2'):
+                llama_module.LlamaFlashAttention2 = MagicMock
+        else:
+            # Pre-emptively patch before the module is imported
+            import transformers.models.llama.modeling_llama as llama_module
+            llama_module.LlamaFlashAttention2 = MagicMock
+
     DEEPSEEK_AVAILABLE = True
-except ImportError:
+except ImportError as e:
     DEEPSEEK_AVAILABLE = False
-    print("Warning: DeepSeek-OCR not available. Install with: pip install transformers torch")
+    print(f"Warning: DeepSeek-OCR not available: {e}")
+    print("Install with: pip install transformers torch")
 
 # LLM imports for optional correction
 try:
@@ -71,16 +93,31 @@ class DeepSeekOCR:
         try:
             # Load model and tokenizer
             # Use eager attention for better compatibility across transformers versions
-            self.model = AutoModelForCausalLM.from_pretrained(
-                model_name,
-                trust_remote_code=True,
-                torch_dtype=torch.bfloat16 if self.device == "cuda" else torch.float32,
-                attn_implementation="eager"
-            )
-            self.tokenizer = AutoTokenizer.from_pretrained(
-                model_name,
-                trust_remote_code=True
-            )
+            try:
+                self.model = AutoModelForCausalLM.from_pretrained(
+                    model_name,
+                    trust_remote_code=True,
+                    torch_dtype=torch.bfloat16 if self.device == "cuda" else torch.float32,
+                    attn_implementation="eager"
+                )
+                self.tokenizer = AutoTokenizer.from_pretrained(
+                    model_name,
+                    trust_remote_code=True
+                )
+            except ImportError as import_err:
+                if "LlamaFlashAttention2" in str(import_err):
+                    print(f"\n{'='*80}")
+                    print("ERROR: LlamaFlashAttention2 import failed")
+                    print(f"{'='*80}")
+                    print("\nThis is a compatibility issue between transformers versions.")
+                    print("\nTo fix this, run the following commands:")
+                    print("\n1. Clear the HuggingFace cache:")
+                    print("   rm -rf ~/.cache/huggingface/modules/transformers_modules/")
+                    print("\n2. Upgrade transformers:")
+                    print("   pip install --upgrade 'transformers>=4.48.0' 'tokenizers>=0.21.0'")
+                    print("\n3. Run the script again")
+                    print(f"\n{'='*80}\n")
+                raise
 
             self.model.to(self.device)
             self.model.eval()
