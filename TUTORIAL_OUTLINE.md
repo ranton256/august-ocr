@@ -124,9 +124,15 @@
 ## 3. Part II: Handwriting Recognition from Photo Notes with DeepSeek-OCR
 
 ### 3.1 Introduction to DeepSeek-OCR
-- What is DeepSeek-OCR? (Vision transformer-based model)
-- Advantages over traditional OCR for handwritten text
-- Model capabilities: rotation handling, multi-angle support, cursive text
+
+**Paper**: Wei, H., Sun, Y., & Li, Y. (2025). DeepSeek-OCR: Contexts Optical Compression. [arXiv:2510.18234](https://arxiv.org/abs/2510.18234)
+
+- What is DeepSeek-OCR? (Vision-language model with efficient visual compression)
+- Advantages over traditional OCR for handwritten text:
+  - **97% accuracy** at 10× compression ratio
+  - Two-stage architecture: DeepEncoder (380M params) + MoE decoder (DeepSeek3B-MoE)
+  - Production-scale: 200k+ pages/day on a single A100-40G
+- Model capabilities: rotation handling, multi-angle support, cursive text, formulas, tables
 
 ### 3.2 Setting Up DeepSeek-OCR
 
@@ -362,10 +368,33 @@ Is the text handwritten?
 - Exploring document understanding beyond OCR (layout analysis, table extraction)
 
 ### 7.4 Resources and References
-- PyTesseract documentation
-- DeepSeek-OCR GitHub repository
-- OpenAI Vision API guide
-- Computer vision preprocessing techniques
+
+#### Academic Papers
+
+**DeepSeek-OCR**
+Wei, H., Sun, Y., & Li, Y. (2025). DeepSeek-OCR: Contexts Optical Compression. *arXiv preprint arXiv:2510.18234*.
+[https://arxiv.org/abs/2510.18234](https://arxiv.org/abs/2510.18234)
+
+**GPT-4o**
+OpenAI. (2024). GPT-4o System Card. *arXiv preprint arXiv:2410.21276*.
+[https://arxiv.org/abs/2410.21276](https://arxiv.org/abs/2410.21276)
+
+**Tesseract OCR**
+Smith, R. (2007). An Overview of the Tesseract OCR Engine. In *Proceedings of the Ninth International Conference on Document Analysis and Recognition (ICDAR '07)*, pp. 629-633. IEEE Computer Society.
+
+#### Documentation and Tools
+
+- **PyTesseract**: [https://github.com/h/pytesseract](https://github.com/h/pytesseract)
+- **DeepSeek-OCR GitHub**: [https://github.com/deepseek-ai/DeepSeek-OCR](https://github.com/deepseek-ai/DeepSeek-OCR)
+- **DeepSeek-OCR HuggingFace**: [https://huggingface.co/deepseek-ai/DeepSeek-OCR](https://huggingface.co/deepseek-ai/DeepSeek-OCR)
+- **OpenAI Vision API guide**: [https://platform.openai.com/docs/guides/vision](https://platform.openai.com/docs/guides/vision)
+- **OpenCV**: [https://opencv.org/](https://opencv.org/)
+- **HuggingFace Transformers**: [https://huggingface.co/docs/transformers/](https://huggingface.co/docs/transformers/)
+
+#### Preprocessing Techniques
+
+- Pre-processing in OCR: [https://towardsdatascience.com/pre-processing-in-ocr-fc231c6035a7](https://towardsdatascience.com/pre-processing-in-ocr-fc231c6035a7)
+- Page dewarping algorithm: [https://mzucker.github.io/2016/08/15/page-dewarping.html](https://mzucker.github.io/2016/08/15/page-dewarping.html)
 - Historical document digitization best practices
 
 ---
