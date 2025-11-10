@@ -32,3 +32,8 @@ openai>=1.0.0           # Optional: for LLM correction
 # - Sufficient disk space
 # - Good internet connection for initial download
 # - 8GB+ GPU memory (recommended) or 16GB+ system RAM for CPU inference
+
+addict>=2.4.0
+matplotlib>=3.10.7
+easydict>=1.13
+einops>=0.8.1
