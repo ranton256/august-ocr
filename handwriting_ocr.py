@@ -201,6 +201,7 @@ class DeepSeekOCR:
                 # Save temp image if we preprocessed it
                 import tempfile
                 temp_path = None
+                temp_output_dir = None
                 if preprocess:
                     temp_path = tempfile.mktemp(suffix='.jpg')
                     cv2.imwrite(temp_path, cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
@@ -209,12 +210,15 @@ class DeepSeekOCR:
                     infer_path = image_path
 
                 try:
+                    # Create a temporary directory for model output
+                    temp_output_dir = tempfile.mkdtemp()
+
                     # Use model's infer method
                     text = self.model.infer(
                         self.tokenizer,
                         prompt=prompt,
                         image_file=infer_path,
-                        output_path=None,  # We don't need file output
+                        output_path=temp_output_dir,  # Provide temp directory
                         base_size=1024,
                         image_size=640,
                         crop_mode=True
@@ -223,6 +227,10 @@ class DeepSeekOCR:
                     # Clean up temp file if created
                     if temp_path and os.path.exists(temp_path):
                         os.remove(temp_path)
+                    # Clean up temp output directory
+                    if temp_output_dir and os.path.exists(temp_output_dir):
+                        import shutil
+                        shutil.rmtree(temp_output_dir)
             else:
                 # Fallback: Use standard transformers approach
                 # Process image and text together
