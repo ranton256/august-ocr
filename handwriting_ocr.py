@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 """
-Handwriting OCR pipeline using DeepSeek-OCR
+Handwriting OCR pipeline using TrOCR
 
-This module provides state-of-the-art handwriting recognition capabilities using
-DeepSeek-OCR, a novel vision-language model with 97% accuracy and efficient compression.
+This module provides handwriting recognition capabilities using Microsoft's TrOCR
+(Transformer-based OCR), a state-of-the-art model specifically trained for handwritten text.
 
-DeepSeek-OCR features:
-- Two-stage architecture: DeepEncoder (380M) + MoE decoder (DeepSeek3B-MoE)
-- 10× visual compression with minimal accuracy loss
-- Supports handwritten notes, formulas, tables, and complex documents
-- Handles multiple resolutions and dense visual content
+TrOCR features:
+- Transformer-based encoder-decoder architecture
+- Specifically trained on handwritten text datasets
+- Works well on modest hardware (CPU or GPU)
+- Good accuracy on cursive and printed handwriting
+- Easy to use via HuggingFace transformers
 
 For tutorial purposes, this is structured to allow easy comparison with traditional OCR.
 """
@@ -30,34 +31,12 @@ from dotenv import load_dotenv
 # Vision/OCR imports
 try:
     import torch
-    from transformers import AutoModel, AutoTokenizer
-    from transformers.dynamic_module_utils import get_imports
-
-    # Monkey-patch to fix LlamaFlashAttention2 import issue
-    # DeepSeek-OCR model code tries to import this, but we're using eager attention
-    try:
-        from transformers.models.llama.modeling_llama import LlamaFlashAttention2
-    except ImportError:
-        # Create a dummy class if LlamaFlashAttention2 doesn't exist
-        # This is safe because we use attn_implementation="eager"
-        import sys
-        from unittest.mock import MagicMock
-
-        # Mock the LlamaFlashAttention2 class
-        if 'transformers.models.llama.modeling_llama' in sys.modules:
-            llama_module = sys.modules['transformers.models.llama.modeling_llama']
-            if not hasattr(llama_module, 'LlamaFlashAttention2'):
-                llama_module.LlamaFlashAttention2 = MagicMock
-        else:
-            # Pre-emptively patch before the module is imported
-            import transformers.models.llama.modeling_llama as llama_module
-            llama_module.LlamaFlashAttention2 = MagicMock
-
-    DEEPSEEK_AVAILABLE = True
+    from transformers import TrOCRProcessor, VisionEncoderDecoderModel
+    TROCR_AVAILABLE = True
 except ImportError as e:
-    DEEPSEEK_AVAILABLE = False
-    print(f"Warning: DeepSeek-OCR not available: {e}")
-    print("Install with: pip install transformers torch")
+    TROCR_AVAILABLE = False
+    print(f"Warning: TrOCR not available: {e}")
+    print("Install with: pip install transformers torch pillow")
 
 # LLM imports for optional correction
 try:
@@ -67,82 +46,53 @@ except ImportError:
     OPENAI_AVAILABLE = False
 
 
-class DeepSeekOCR:
-    """Handwriting OCR using DeepSeek-OCR vision-language model"""
+class TrOCRModel:
+    """Handwriting OCR using Microsoft's TrOCR model"""
 
-    def __init__(self, model_name: str = "deepseek-ai/DeepSeek-OCR", use_gpu: bool = True):
+    def __init__(self, model_name: str = "microsoft/trocr-base-handwritten", use_gpu: bool = True):
         """
-        Initialize the DeepSeek-OCR model
+        Initialize the TrOCR model
 
         Args:
             model_name: HuggingFace model identifier
+                Options:
+                - microsoft/trocr-base-handwritten (faster, good for most cases)
+                - microsoft/trocr-large-handwritten (more accurate, slower)
             use_gpu: Whether to use GPU if available
         """
-        if not DEEPSEEK_AVAILABLE:
+        if not TROCR_AVAILABLE:
             raise ImportError(
-                "DeepSeek-OCR dependencies not installed. "
-                "Install with: pip install transformers torch torchvision"
+                "TrOCR dependencies not installed. "
+                "Install with: pip install transformers torch pillow"
             )
 
         self.model_name = model_name
         self.device = "cuda" if use_gpu and torch.cuda.is_available() else "cpu"
 
         print(f"Loading {model_name} on {self.device}...")
-        print("Note: DeepSeek-OCR is a large model (~5GB). First download may take time.")
+        print("Note: First download may take a few minutes (~1GB).")
 
         try:
-            # Load model and tokenizer
-            # Use eager attention for better compatibility across transformers versions
-            try:
-                # Load model using AutoModel (DeepSeek-OCR uses custom config)
-                # Official docs: https://github.com/deepseek-ai/DeepSeek-OCR
-                self.model = AutoModel.from_pretrained(
-                    model_name,
-                    trust_remote_code=True,
-                    use_safetensors=True,
-                    attn_implementation="eager"  # Use eager instead of flash_attention_2 for compatibility
-                )
-                self.tokenizer = AutoTokenizer.from_pretrained(
-                    model_name,
-                    trust_remote_code=True
-                )
-            except ImportError as import_err:
-                if "LlamaFlashAttention2" in str(import_err):
-                    print(f"\n{'='*80}")
-                    print("ERROR: LlamaFlashAttention2 import failed")
-                    print(f"{'='*80}")
-                    print("\nThis is a compatibility issue between transformers versions.")
-                    print("\nTo fix this, run the following commands:")
-                    print("\n1. Clear the HuggingFace cache:")
-                    print("   rm -rf ~/.cache/huggingface/modules/transformers_modules/")
-                    print("\n2. Upgrade transformers:")
-                    print("   pip install --upgrade 'transformers>=4.48.0' 'tokenizers>=0.21.0'")
-                    print("\n3. Run the script again")
-                    print(f"\n{'='*80}\n")
-                raise
-
-            # Move model to device and set precision
-            # Official approach: model.eval().cuda().to(torch.bfloat16)
+            # Load processor and model
+            self.processor = TrOCRProcessor.from_pretrained(model_name)
+            self.model = VisionEncoderDecoderModel.from_pretrained(model_name)
+            self.model.to(self.device)
             self.model.eval()
-            if self.device == "cuda":
-                self.model = self.model.cuda().to(torch.bfloat16)
-            else:
-                self.model = self.model.to(torch.float32)
-            print("DeepSeek-OCR loaded successfully!")
+
+            print("TrOCR loaded successfully!")
 
         except Exception as e:
-            print(f"Error loading DeepSeek-OCR: {e}")
+            print(f"Error loading TrOCR: {e}")
             print("\nTroubleshooting:")
-            print("1. Ensure you have enough disk space (~5GB)")
-            print("2. Check internet connection for model download")
-            print("3. Try: pip install --upgrade transformers torch")
+            print("1. Ensure you have internet connection for model download")
+            print("2. Try: pip install --upgrade transformers torch")
             raise
 
     def preprocess_image(self, image: np.ndarray) -> np.ndarray:
         """
         Preprocess image for better handwriting recognition
 
-        DeepSeek-OCR handles much of the preprocessing internally,
+        TrOCR handles much of the preprocessing internally,
         but we still apply basic enhancements for photos of handwritten notes.
 
         Args:
@@ -168,7 +118,7 @@ class DeepSeekOCR:
 
     def extract_text(self, image_path: str, preprocess: bool = True) -> Dict:
         """
-        Extract text from a handwritten image using DeepSeek-OCR
+        Extract text from a handwritten image using TrOCR
 
         Args:
             image_path: Path to image file
@@ -186,79 +136,20 @@ class DeepSeekOCR:
         if preprocess:
             image = self.preprocess_image(image)
 
-        # Convert to PIL Image for DeepSeek-OCR
+        # Convert to PIL Image for TrOCR
         pil_image = Image.fromarray(image)
 
-        # Prepare inputs
         try:
-            # DeepSeek-OCR uses a simple prompt format with <image> token
-            # Official format: "<image>\nFree OCR." for handwriting recognition
-            prompt = "<image>\nExtract all text from this image, including any handwritten notes."
+            # Process image with TrOCR processor
+            pixel_values = self.processor(pil_image, return_tensors="pt").pixel_values
+            pixel_values = pixel_values.to(self.device)
 
-            # Check if model has custom infer method
-            if hasattr(self.model, 'infer'):
-                # Use the model's custom infer method
-                # Save temp image if we preprocessed it
-                import tempfile
-                temp_path = None
-                temp_output_dir = None
-                if preprocess:
-                    temp_path = tempfile.mktemp(suffix='.jpg')
-                    cv2.imwrite(temp_path, cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
-                    infer_path = temp_path
-                else:
-                    infer_path = image_path
+            # Generate text with the model
+            with torch.no_grad():
+                generated_ids = self.model.generate(pixel_values)
 
-                try:
-                    # Create a temporary directory for model output
-                    temp_output_dir = tempfile.mkdtemp()
-
-                    # Use model's infer method
-                    text = self.model.infer(
-                        self.tokenizer,
-                        prompt=prompt,
-                        image_file=infer_path,
-                        output_path=temp_output_dir,  # Provide temp directory
-                        base_size=1024,
-                        image_size=640,
-                        crop_mode=True
-                    )
-                finally:
-                    # Clean up temp file if created
-                    if temp_path and os.path.exists(temp_path):
-                        os.remove(temp_path)
-                    # Clean up temp output directory
-                    if temp_output_dir and os.path.exists(temp_output_dir):
-                        import shutil
-                        shutil.rmtree(temp_output_dir)
-            else:
-                # Fallback: Use standard transformers approach
-                # Process image and text together
-                inputs = self.model.build_inputs(
-                    tokenizer=self.tokenizer,
-                    image=pil_image,
-                    prompt=prompt
-                )
-
-                # Move to device
-                inputs = {k: v.to(self.device) if torch.is_tensor(v) else v
-                         for k, v in inputs.items()}
-
-                # Generate text
-                with torch.no_grad():
-                    outputs = self.model.generate(
-                        **inputs,
-                        max_new_tokens=2048,
-                        do_sample=False,  # Deterministic for OCR
-                        pad_token_id=self.tokenizer.eos_token_id if self.tokenizer.eos_token_id else 0
-                    )
-
-                # Decode output
-                text = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
-
-                # Clean up the output - remove the prompt if it's echoed back
-                if prompt in text:
-                    text = text.replace(prompt, "").strip()
+            # Decode the generated tokens to text
+            text = self.processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
 
         except Exception as e:
             import traceback
@@ -269,7 +160,6 @@ class DeepSeekOCR:
             print(f"\nFull traceback:")
             print(traceback.format_exc())
             print(f"{'='*80}\n")
-            # Re-raise the exception instead of returning it as a fake result
             raise
 
         return {
@@ -363,7 +253,7 @@ def perspective_correction(image: np.ndarray, debug: bool = False) -> Optional[n
 def process_image(
     image_path: str,
     output_dir: str,
-    ocr_model: DeepSeekOCR,
+    ocr_model: TrOCRModel,
     apply_perspective_correction: bool = False,
     use_llm_correction: bool = False,
     openai_client: Optional[OpenAI] = None
@@ -374,7 +264,7 @@ def process_image(
     Args:
         image_path: Path to input image
         output_dir: Directory to save outputs
-        ocr_model: Initialized DeepSeekOCR model
+        ocr_model: Initialized TrOCRModel
         apply_perspective_correction: Whether to correct perspective
         use_llm_correction: Whether to use LLM for correction
         openai_client: OpenAI client (required if use_llm_correction=True)
@@ -472,7 +362,7 @@ def correct_with_llm(client: OpenAI, text: str, is_handwriting: bool = True) -> 
 def process_batch(
     input_dir: str,
     output_dir: str,
-    model_name: str = "deepseek-ai/DeepSeek-OCR",
+    model_name: str = "microsoft/trocr-base-handwritten",
     use_gpu: bool = True,
     apply_perspective_correction: bool = False,
     use_llm_correction: bool = False,
@@ -497,7 +387,7 @@ def process_batch(
     os.makedirs(output_dir, exist_ok=True)
 
     # Initialize OCR model
-    ocr_model = DeepSeekOCR(model_name=model_name, use_gpu=use_gpu)
+    ocr_model = TrOCRModel(model_name=model_name, use_gpu=use_gpu)
 
     # Initialize OpenAI client if needed
     openai_client = None
@@ -568,7 +458,7 @@ def process_batch(
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Extract text from handwritten images using DeepSeek-OCR'
+        description='Extract text from handwritten images using TrOCR'
     )
     parser.add_argument(
         '--input',
@@ -585,8 +475,8 @@ def main():
     parser.add_argument(
         '--model',
         type=str,
-        default='deepseek-ai/DeepSeek-OCR',
-        help='HuggingFace model name (default: deepseek-ai/DeepSeek-OCR)'
+        default='microsoft/trocr-base-handwritten',
+        help='HuggingFace model name (default: microsoft/trocr-base-handwritten)'
     )
     parser.add_argument(
         '--no-gpu',
@@ -634,10 +524,11 @@ def main():
 
     print(f"\n✓ Processed {len(df)} images successfully!")
     print(f"✓ Results saved to {args.output}/")
-    print(f"\nDeepSeek-OCR Features Used:")
-    print(f"  - 97% accuracy with 10× visual compression")
-    print(f"  - Two-stage architecture: DeepEncoder + MoE decoder")
-    print(f"  - Supports handwriting, formulas, tables, and complex layouts")
+    print(f"\nTrOCR Features:")
+    print(f"  - Transformer-based architecture")
+    print(f"  - Trained specifically on handwritten text")
+    print(f"  - Works well on CPU or GPU")
+    print(f"  - Good accuracy on cursive and printed handwriting")
 
 
 if __name__ == '__main__':

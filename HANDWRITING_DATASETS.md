@@ -613,7 +613,7 @@ python benchmark.py \
 
 ### Academic Papers
 - [IAM Database Paper](https://ieeexplore.ieee.org/document/990556)
-- [DeepSeek-OCR Paper](https://arxiv.org/abs/2510.18234) - State-of-the-art vision-language OCR
+- [TrOCR Paper](https://arxiv.org/abs/2109.10282) - Transformer-based OCR for handwriting
 - [Handwriting Recognition Survey](https://arxiv.org/abs/2104.03064)
 
 ---
