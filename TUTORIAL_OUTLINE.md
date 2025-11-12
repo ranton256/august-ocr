@@ -24,7 +24,7 @@
 |---------|---------------------|-------------------|
 | Input Type | Scanned pages, aged paper | Phone camera photos |
 | Challenges | Faded ink, paper artifacts | Varied angles, lighting |
-| Best Approach | Pytesseract + preprocessing | Vision models (DeepSeek-OCR) |
+| Best Approach | Pytesseract + preprocessing | Transformer models (TrOCR) |
 
 ---
 
@@ -121,62 +121,65 @@
 
 ---
 
-## 3. Part II: Handwriting Recognition from Photo Notes with DeepSeek-OCR
+## 3. Part II: Handwriting Recognition from Photo Notes with TrOCR
 
-### 3.1 Introduction to DeepSeek-OCR
+### 3.1 Introduction to TrOCR
 
-**Paper**: Wei, H., Sun, Y., & Li, Y. (2025). DeepSeek-OCR: Contexts Optical Compression. [arXiv:2510.18234](https://arxiv.org/abs/2510.18234)
+**Paper**: Li, M., et al. (2023). TrOCR: Transformer-based Optical Character Recognition with Pre-trained Models. [arXiv:2109.10282](https://arxiv.org/abs/2109.10282)
 
-- What is DeepSeek-OCR? (Vision-language model with efficient visual compression)
+- What is TrOCR? (Transformer-based OCR model from Microsoft)
 - Advantages over traditional OCR for handwritten text:
-  - **97% accuracy** at 10× compression ratio
-  - Two-stage architecture: DeepEncoder (380M params) + MoE decoder (DeepSeek3B-MoE)
-  - Production-scale: 200k+ pages/day on a single A100-40G
-- Model capabilities: rotation handling, multi-angle support, cursive text, formulas, tables
+  - **Transformer architecture** (encoder-decoder)
+  - Pre-trained on both printed and handwritten text
+  - Works well on modest hardware (CPU or GPU)
+  - State-of-the-art results on standard benchmarks
+- Model capabilities: cursive text, printed handwriting, various writing styles
 
-### 3.2 Setting Up DeepSeek-OCR
+### 3.2 Setting Up TrOCR
 
-**New file: `requirements_deepseek.txt`**
+**Dependencies already in environment:**
 
 ```
-deepseek-ocr
 torch>=2.0.0
 transformers>=4.30.0
 pillow
 ```
 
-- Installation and dependencies
-- Model download and caching
+- Installation via transformers library
+- Model download and caching from HuggingFace
 - GPU vs. CPU inference considerations
+- Model variants: base vs. large
 
 ### 3.3 Creating the Handwriting OCR Pipeline
 
-**New file: `handwriting_ocr.py`**
+**File: `handwriting_ocr.py`**
 
-- **Loading the DeepSeek-OCR model**
+- **Loading the TrOCR model**
   ```python
-  from deepseek_ocr import DeepSeekOCR
+  from transformers import TrOCRProcessor, VisionEncoderDecoderModel
 
   def initialize_model():
-      model = DeepSeekOCR.from_pretrained("deepseek-ai/deepseek-ocr")
-      return model
+      processor = TrOCRProcessor.from_pretrained("microsoft/trocr-base-handwritten")
+      model = VisionEncoderDecoderModel.from_pretrained("microsoft/trocr-base-handwritten")
+      return processor, model
   ```
 
 - **Preprocessing for photo inputs**
   - Different requirements vs. scanned documents
   - Handling various lighting conditions
   - Perspective correction for angled photos
-  - Auto-rotation and orientation detection
+  - CLAHE for contrast enhancement
 
 - **Running inference**
   ```python
-  def extract_handwriting(model, image_path):
+  def extract_handwriting(processor, model, image_path):
       image = Image.open(image_path)
-      result = model.predict(image)
+      pixel_values = processor(image, return_tensors="pt").pixel_values
+      generated_ids = model.generate(pixel_values)
+      text = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
       return {
-          'text': result.text,
-          'confidence': result.confidence,
-          'bounding_boxes': result.boxes
+          'text': text,
+          'model': 'microsoft/trocr-base-handwritten'
       }
   ```
 
@@ -208,7 +211,7 @@ pillow
 ### 3.6 Optional: LLM Correction for Handwriting
 - When to apply GPT-4o correction to handwriting
 - Modified prompts for handwritten text
-- Comparison: DeepSeek-OCR alone vs. DeepSeek + LLM correction
+- Comparison: TrOCR alone vs. TrOCR + LLM correction
 - Cost-benefit analysis
 
 ---
@@ -223,7 +226,7 @@ pillow
   ```python
   doc_type = st.radio(
       "Select OCR Method:",
-      ["Historical Documents (Pytesseract)", "Handwritten Notes (DeepSeek)"]
+      ["Historical Documents (Pytesseract)", "Handwritten Notes (TrOCR)"]
   )
   ```
 
@@ -237,8 +240,8 @@ pillow
 **Three-column layout for handwriting:**
 ```
 ┌────────────────────────────────────────────────────────┐
-│ Original Photo  │ Preprocessed  │ DeepSeek Output      │
-│                 │ (corrected)   │ + Confidence Scores  │
+│ Original Photo  │ Preprocessed  │ TrOCR Output         │
+│                 │ (corrected)   │ + Text               │
 └────────────────────────────────────────────────────────┘
 ```
 
@@ -258,7 +261,7 @@ pillow
   - Click to highlight specific words
 
 - **Side-by-side method comparison**
-  - Running both pytesseract and DeepSeek on same image
+  - Running both pytesseract and TrOCR on same image
   - Diff view showing differences
   - Accuracy metrics (if ground truth available)
 
@@ -273,11 +276,11 @@ pillow
 
 ### 5.1 Accuracy Comparison
 
-**New file: `benchmark.py`**
+**File: `benchmark.py`**
 
 - Creating a test set with ground truth
 - Metrics: Character Error Rate (CER), Word Error Rate (WER)
-- Comparing pytesseract vs. DeepSeek on handwriting
+- Comparing pytesseract vs. TrOCR on handwriting
 - Impact of preprocessing on accuracy
 
 ### 5.2 Speed and Cost Analysis
@@ -285,8 +288,8 @@ pillow
 | Method | Processing Time | API Cost | GPU Needed |
 |--------|----------------|----------|------------|
 | Pytesseract + GPT-4o | ~2s + ~1s | $0.005/page | No |
-| DeepSeek-OCR | ~3s | Free (local) | Optional |
-| DeepSeek + GPT-4o | ~3s + ~1s | $0.005/page | Optional |
+| TrOCR | ~2-5s | Free (local) | Optional |
+| TrOCR + GPT-4o | ~2-5s + ~1s | $0.005/page | Optional |
 
 ### 5.3 When to Use Which Approach
 
@@ -297,14 +300,14 @@ Is the text handwritten?
 │
 └─ Yes → Is it from a photo or scan?
     ├─ High-quality scan → Pytesseract + preprocessing may work
-    └─ Photo with angles/lighting issues → Use DeepSeek-OCR
+    └─ Photo with angles/lighting issues → Use TrOCR
 ```
 
 ### 5.4 Production Deployment Considerations
 
 - **Scaling for large document sets**
   - Parallel processing with multiprocessing
-  - GPU batch inference for DeepSeek
+  - GPU batch inference for TrOCR
   - Rate limiting for OpenAI API
 
 - **Error handling and monitoring**
@@ -323,7 +326,7 @@ Is the text handwritten?
 
 ### 6.1 Multi-Language Support
 - Tesseract language packs
-- DeepSeek multilingual capabilities
+- TrOCR multilingual models
 - LLM correction for non-English text
 
 ### 6.2 Vision-Assisted Correction
@@ -362,8 +365,8 @@ Is the text handwritten?
 - Interactive tools help validate and refine results
 
 ### 7.3 Next Steps and Further Learning
-- Experimenting with other OCR models (EasyOCR, TrOCR, PaddleOCR)
-- Fine-tuning DeepSeek on your specific handwriting
+- Experimenting with other OCR models (EasyOCR, different TrOCR variants, PaddleOCR)
+- Fine-tuning TrOCR on your specific handwriting style
 - Building a REST API for OCR-as-a-service
 - Exploring document understanding beyond OCR (layout analysis, table extraction)
 
@@ -371,9 +374,9 @@ Is the text handwritten?
 
 #### Academic Papers
 
-**DeepSeek-OCR**
-Wei, H., Sun, Y., & Li, Y. (2025). DeepSeek-OCR: Contexts Optical Compression. *arXiv preprint arXiv:2510.18234*.
-[https://arxiv.org/abs/2510.18234](https://arxiv.org/abs/2510.18234)
+**TrOCR**
+Li, M., Lv, T., Chen, J., Cui, L., Lu, Y., Florencio, D., ... & Wei, F. (2023). TrOCR: Transformer-based Optical Character Recognition with Pre-trained Models. *Proceedings of the AAAI Conference on Artificial Intelligence, 37*(11), 13094-13102.
+[https://arxiv.org/abs/2109.10282](https://arxiv.org/abs/2109.10282)
 
 **GPT-4o**
 OpenAI. (2024). GPT-4o System Card. *arXiv preprint arXiv:2410.21276*.
@@ -385,8 +388,8 @@ Smith, R. (2007). An Overview of the Tesseract OCR Engine. In *Proceedings of th
 #### Documentation and Tools
 
 - **PyTesseract**: [https://github.com/h/pytesseract](https://github.com/h/pytesseract)
-- **DeepSeek-OCR GitHub**: [https://github.com/deepseek-ai/DeepSeek-OCR](https://github.com/deepseek-ai/DeepSeek-OCR)
-- **DeepSeek-OCR HuggingFace**: [https://huggingface.co/deepseek-ai/DeepSeek-OCR](https://huggingface.co/deepseek-ai/DeepSeek-OCR)
+- **TrOCR on HuggingFace**: [https://huggingface.co/docs/transformers/model_doc/trocr](https://huggingface.co/docs/transformers/model_doc/trocr)
+- **TrOCR Models**: [https://huggingface.co/models?search=trocr](https://huggingface.co/models?search=trocr)
 - **OpenAI Vision API guide**: [https://platform.openai.com/docs/guides/vision](https://platform.openai.com/docs/guides/vision)
 - **OpenCV**: [https://opencv.org/](https://opencv.org/)
 - **HuggingFace Transformers**: [https://huggingface.co/docs/transformers/](https://huggingface.co/docs/transformers/)
@@ -406,17 +409,16 @@ Smith, R. (2007). An Overview of the Tesseract OCR Engine. In *Proceedings of th
 ```
 august-ocr/
 ├── text_from_pdfs.py          # Document OCR (pytesseract)
-├── handwriting_ocr.py          # NEW: Handwriting OCR (DeepSeek)
+├── handwriting_ocr.py          # Handwriting OCR (TrOCR)
 ├── viewer_app.py               # Enhanced unified viewer
 ├── make_md.py                  # Markdown formatting
-├── benchmark.py                # NEW: Performance comparison
+├── benchmark.py                # Performance comparison
 ├── common.py                   # Shared utilities
-├── requirements.txt            # Streamlit dependencies
-├── requirements_deepseek.txt   # NEW: DeepSeek dependencies
+├── requirements.txt            # Dependencies
 ├── local_environment.yml       # Complete conda environment
 └── output/
     ├── results.csv             # Document OCR results
-    ├── handwriting_results.csv # NEW: Handwriting results
+    ├── handwriting_results.csv # Handwriting results
     ├── extracted.txt
     ├── corrected.txt
     └── pages.md
@@ -432,8 +434,7 @@ brew install tesseract poppler
 conda env create -f local_environment.yml
 conda activate ./env
 
-# Install DeepSeek-OCR
-pip install -r requirements_deepseek.txt
+# Dependencies are already included in environment
 
 # Set up API key
 echo "OPENAI_API_KEY=your-key-here" > .env
@@ -451,7 +452,7 @@ streamlit run viewer_app.py
 ### C. Troubleshooting Common Issues
 
 - Tesseract not found errors
-- CUDA/GPU setup for DeepSeek
+- CUDA/GPU setup for TrOCR
 - OpenAI API rate limits
 - Image format compatibility
 - Memory issues with large documents
@@ -463,7 +464,7 @@ streamlit run viewer_app.py
 This outline provides a comprehensive tutorial that:
 
 1. ✅ Teaches the existing pytesseract + GPT-4o approach in depth
-2. ✅ Introduces DeepSeek-OCR for handwritten note recognition
+2. ✅ Introduces TrOCR for handwritten note recognition
 3. ✅ Builds a unified system for comparing both methods
 4. ✅ Provides practical guidance on when to use each approach
 5. ✅ Includes hands-on code examples and production considerations

@@ -19,7 +19,7 @@ def main():
     # Mode selection
     mode = st.radio(
         "Select OCR Mode:",
-        ["Document OCR (Pytesseract)", "Handwriting OCR (DeepSeek-OCR)"],
+        ["Document OCR (Pytesseract)", "Handwriting OCR (TrOCR)"],
         horizontal=True,
         help="Choose between traditional document OCR or handwriting recognition"
     )
@@ -32,8 +32,8 @@ It performs preprocessing steps to improve results, then uses OpenAI's GPT-4o to
 This works best for typed or printed documents."""
     else:
         results_file = "output/handwriting_results.csv"
-        description = """This shows handwriting recognition using DeepSeek-OCR, a state-of-the-art vision-language model.
-It achieves 97% accuracy with advanced compression and handles handwritten notes, formulas, tables, and complex layouts.
+        description = """This shows handwriting recognition using Microsoft's TrOCR, a transformer-based OCR model.
+It's specifically trained on handwritten text and works well on both cursive and printed handwriting.
 This works best for handwritten notes captured with a phone camera."""
 
     st.write(description)
@@ -42,7 +42,7 @@ This works best for handwritten notes captured with a phone camera."""
     # Check if results file exists
     if not os.path.exists(results_file):
         st.warning(f"Results file not found: {results_file}")
-        if mode == "Handwriting OCR (DeepSeek-OCR)":
+        if mode == "Handwriting OCR (TrOCR)":
             st.info("Run `python handwriting_ocr.py --input handwriting_images/` to generate handwriting results.")
         else:
             st.info("Run `python text_from_pdfs.py` to generate document OCR results.")
@@ -150,7 +150,7 @@ This works best for handwritten notes captured with a phone camera."""
         st.write(extracted_text)
 
         # Show model info for handwriting mode
-        if mode == "Handwriting OCR (DeepSeek-OCR)" and 'model' in df.columns:
+        if mode == "Handwriting OCR (TrOCR)" and 'model' in df.columns:
             st.caption(f"Model: {df.loc[page - 1, 'model']}")
 
     with col2:
