@@ -9,7 +9,7 @@
 
 ### 1.2 What We'll Build
 - **System 1**: Document OCR pipeline (pytesseract + GPT-4o correction) - *existing*
-- **System 2**: Handwriting OCR pipeline (DeepSeek-OCR) - *new*
+- **System 2**: Handwriting OCR pipeline 
 - **System 3**: Unified viewer for comparing both approaches
 
 ### 1.3 Prerequisites

@@ -5,7 +5,6 @@
 This project demonstrates two approaches to OCR (Optical Character Recognition):
 
 1. **Document OCR**: Extract text from scanned documents using [PyTesseract](https://github.com/h/pytesseract), [Pillow](https://python-pillow.org/), and [opencv-python](https://github.com/opencv/opencv-python)
-2. **Handwriting OCR**: Extract text from handwritten notes using [DeepSeek-OCR](https://huggingface.co/deepseek-ai/DeepSeek-OCR) - a state-of-the-art vision-language model with 97% accuracy
 
 Both approaches use OpenAI's [GPT-4o](https://openai.com/index/hello-gpt-4o/) to correct OCR errors and improve accuracy.
 
@@ -74,26 +73,8 @@ brew install poppler
 
 ### Python Environment
 
-Setup the conda environment and install python dependencies:
+T TODO: 
 
-```bash
-conda env create -p ./env -f local_environment.yml
-conda activate ./env
-```
-
-### Additional Dependencies for Handwriting OCR
-
-For handwriting recognition with DeepSeek-OCR, install additional packages:
-
-```bash
-pip install -r requirements_handwriting.txt
-```
-
-**Note**: DeepSeek-OCR is a large model (~5GB). First run will download the model from HuggingFace.
-- Recommended: 8GB+ GPU memory for fast inference
-- CPU inference is supported but slower (requires 16GB+ RAM)
-
-Note: The Streamlit app uses requirements.txt and Pip rather than conda because it has fewer dependencies, and it boots faster on Streamlit Community Cloud this way.
 
 ### API Configuration
 
