@@ -1,0 +1,16 @@
+# Requirements for DeepSeek-OCR with 4-bit quantization
+# Based on verified working configuration from:
+# https://colab.research.google.com/github/Alireza-Akhavan/LLM/blob/main/deepseek_ocr_inference_4bit.ipynb
+
+# Core dependencies
+bitsandbytes
+addict
+transformers==4.46.3
+tokenizers==0.20.3
+
+# Already in main requirements.txt but needed:
+torch>=2.0.0
+pillow
+opencv-python
+pandas
+python-dotenv
