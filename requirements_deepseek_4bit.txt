@@ -5,6 +5,8 @@
 # Core dependencies
 bitsandbytes
 addict
+# Version 4.46.3 has a frozenset bug but is required for DeepSeek-OCR compatibility
+# The test script includes a workaround patch for the frozenset bug
 transformers==4.46.3
 tokenizers==0.20.3
 
@@ -14,3 +16,5 @@ pillow
 opencv-python
 pandas
 python-dotenv
+torchvision
+matplotlib
