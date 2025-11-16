@@ -20,6 +20,25 @@ import traceback
 try:
     import torch
     from transformers import AutoModel, AutoTokenizer, BitsAndBytesConfig
+
+    # Workaround for frozenset bug in transformers 4.46.3
+    # This patches the bitsandbytes integration to fix the "frozenset has no discard" error
+    import transformers.integrations.bitsandbytes as bnb_integration
+    original_validate = bnb_integration._validate_bnb_multi_backend_availability
+
+    def patched_validate(raise_exception=True):
+        """Patched version that handles frozenset correctly"""
+        try:
+            return original_validate(raise_exception)
+        except AttributeError as e:
+            if "'frozenset' object has no attribute 'discard'" in str(e):
+                # The bug is in the validation code, not the actual functionality
+                # Return True to proceed with CPU backend
+                return True
+            raise
+
+    bnb_integration._validate_bnb_multi_backend_availability = patched_validate
+
     DEPS_AVAILABLE = True
 except ImportError as e:
     DEPS_AVAILABLE = False
@@ -138,23 +157,45 @@ class DeepSeekOCR4Bit:
         print(f"Config: base_size={base_size}, image_size={image_size}, crop_mode={crop_mode}")
 
         try:
-            with torch.no_grad():
-                result = self.model.infer(
-                    self.tokenizer,
-                    prompt=prompt,
-                    image_file=image_path,
-                    output_path=output_path,
-                    base_size=base_size,
-                    image_size=image_size,
-                    crop_mode=crop_mode,
-                    save_results=save_results,
-                    test_compress=True,
-                    eval_mode=False
-                )
+            # Capture stdout to get the model output
+            import io
+            import sys
+            from contextlib import redirect_stdout
 
-            # Extract text from result
-            # The result format from the notebook shows the text in the output
-            extracted_text = str(result) if result else ""
+            stdout_capture = io.StringIO()
+
+            with torch.no_grad():
+                with redirect_stdout(stdout_capture):
+                    result = self.model.infer(
+                        self.tokenizer,
+                        prompt=prompt,
+                        image_file=image_path,
+                        output_path=output_path,
+                        base_size=base_size,
+                        image_size=image_size,
+                        crop_mode=crop_mode,
+                        save_results=save_results,
+                        test_compress=True,
+                        eval_mode=False
+                    )
+
+            # Get the captured output
+            model_output = stdout_capture.getvalue()
+
+            # Print the output so user can see it
+            print(model_output)
+
+            # Extract text from the stdout output
+            # For grounding mode, extract just the text content from the tags
+            # Format: <|ref|>text<|/ref|><|det|>[[coords]]<|/det|>
+            extracted_text = model_output
+            if "<|ref|>" in extracted_text and "<|/ref|>" in extracted_text:
+                import re
+                # Extract all text between <|ref|> and <|/ref|> tags
+                text_segments = re.findall(r'<\|ref\|>(.*?)<\|/ref\|>', extracted_text, re.DOTALL)
+                # Filter out non-text segments (like "image", "P", etc.)
+                text_segments = [seg.strip() for seg in text_segments if seg.strip() and seg.strip() not in ['image', 'P', '0', 'text']]
+                extracted_text = '\n'.join(text_segments)
 
             return {
                 'text': extracted_text,
