@@ -1,6 +1,7 @@
 # Quantitative Claims and Metrics in Documentation
 
 This document splits quantitative claims into two categories:
+
 1. **Web-Verifiable Facts** - Can be checked via web search (model specs, API pricing, etc.)
 2. **Project-Specific Evaluations** - Need to be measured on our data/hardware
 
@@ -13,12 +14,14 @@ These claims can be verified through web searches, official documentation, or pu
 ### API Pricing (Need to verify for GPT-5)
 
 **Current Claims (GPT-4o):**
-- **Lines 287-289 (article_draft.md)**: 
+
+- **Lines 287-289 (article_draft.md)**:
   - Input tokens: $2.50 per 1M tokens
   - Output tokens: $10.00 per 1M tokens
 - **Action**: Search for GPT-5 API pricing on OpenAI website
 
 **Derived Cost Claims (Need recalculation with GPT-5 pricing):**
+
 - **Line 288**: Typical OCR correction: ~$0.02-0.03 per page
 - **Line 289**: 30-page document: ~$0.60-0.90 total
 - **Line 925**: Cost per page: $0.005 (TrOCR + GPT-4o)
@@ -32,13 +35,15 @@ These claims can be verified through web searches, official documentation, or pu
 ### Model Specifications
 
 **TrOCR Model Sizes (Lines 499-500, article_draft.md):**
+
 - **trocr-base-handwritten**: 334M parameters, ~1GB download
 - **trocr-large-handwritten**: 558M parameters, ~2GB download
 - **Action**: Verify on HuggingFace model cards
-- **Source**: https://huggingface.co/microsoft/trocr-base-handwritten
-- **Source**: https://huggingface.co/microsoft/trocr-large-handwritten
+- **Source**: <https://huggingface.co/microsoft/trocr-base-handwritten>
+- **Source**: <https://huggingface.co/microsoft/trocr-large-handwritten>
 
 **DeepSeek Model Memory Requirements (DEEPSEEK_4BIT_TEST.md, Lines 11-12):**
+
 - **Full DeepSeek-OCR**: ~24GB+ GPU memory required
 - **4-bit Quantized**: ~6-8GB GPU memory (can run on T4 GPU)
 - **Action**: Verify on DeepSeek model documentation
@@ -46,12 +51,14 @@ These claims can be verified through web searches, official documentation, or pu
 ### Standard Benchmarks & Research Metrics
 
 **Dataset Split Recommendations (HANDWRITING_DATASETS.md, Lines 444-446):**
+
 - Training: 70-80%
 - Validation: 10-15%
 - Test: 10-15%
 - **Action**: Verify against ML best practices (this is standard, likely correct)
 
 **GPU Speedup Factors (Multiple locations):**
+
 - **Line 45**: GPU Benefit: 5-10x speedup for TrOCR
 - **Line 1375**: GPU acceleration: 5-10x speedup for TrOCR
 - **Action**: Check TrOCR research papers or benchmarks for typical GPU speedup
@@ -60,6 +67,7 @@ These claims can be verified through web searches, official documentation, or pu
 ### Confidence Threshold Standards
 
 **Confidence Level Definitions (Lines 1044-1046, article_draft.md):**
+
 - Green: High confidence (>90%)
 - Yellow: Medium confidence (70-90%)
 - Red: Low confidence (<70%)
@@ -75,13 +83,15 @@ These claims need to be measured on your specific data, hardware, and use case. 
 ### Error Rates on August Anton Dataset
 
 **General Accuracy Claims (Lines 46-47, article_draft.md):**
+
 - Document OCR (Pytesseract): 85-95% (raw OCR), 95-98% (with AI correction)
 - Handwriting OCR (TrOCR): 90-95% (raw OCR), 97-99% (with AI correction)
 - **Action**: Re-run benchmarks on your dataset with GPT-5
 - **Test Script**: `benchmark.py`
 
 **TrOCR vs TrOCR + LLM Error Rates (Lines 922-923, article_draft.md):**
-- **Character Error Rate**: 
+
+- **Character Error Rate**:
   - TrOCR Alone: 8-15%
   - TrOCR + GPT-4o: 2-6%
   - Improvement: 6-9% reduction
@@ -93,6 +103,7 @@ These claims need to be measured on your specific data, hardware, and use case. 
 - **Test Script**: `benchmark.py --ground-truth ground_truth.json`
 
 **Performance Comparison Table (Lines 1364-1369, article_draft.md):**
+
 - **Pytesseract**:
   - CER: 0.15-0.25
   - WER: 0.20-0.35
@@ -111,18 +122,22 @@ These claims need to be measured on your specific data, hardware, and use case. 
 ### Processing Time on Your Hardware
 
 **Document OCR Processing (Line 44, article_draft.md):**
+
 - ~1-2s per page
 - **Action**: Time `text_from_pdfs.py` on your hardware
 
 **Handwriting OCR Processing (Line 44, article_draft.md):**
+
 - ~3-5s per page (CPU)
 - **Action**: Time `handwriting_ocr.py` on your hardware
 
 **LLM Correction Overhead (Lines 925, 942, article_draft.md):**
+
 - +1-2 seconds per page for LLM correction
 - **Action**: Measure API call latency with GPT-5 on your network
 
 **Detailed Processing Times (Lines 1366-1369, article_draft.md):**
+
 - Pytesseract: ~1s/page
 - Pytesseract + GPT-4o: ~2s/page
 - TrOCR (base): ~3-5s/page (CPU), ~0.5s/page (GPU)
@@ -133,6 +148,7 @@ These claims need to be measured on your specific data, hardware, and use case. 
 ### Preprocessing Impact on Your Data
 
 **Preprocessing Improvement (Line 1738, article_draft.md):**
+
 - Preprocessing can improve results by 10-20%
 - **Action**: Run A/B test with/without preprocessing on your dataset
 - **Test Method**: Modify preprocessing pipeline and compare CER/WER
@@ -140,11 +156,13 @@ These claims need to be measured on your specific data, hardware, and use case. 
 ### LLM Correction Impact on Your Data
 
 **LLM Correction Improvement (Line 1742, article_draft.md):**
+
 - GPT-4o can reduce error rates by 6-10% at minimal cost
 - **Action**: Re-measure with GPT-5 on your dataset
 - **Test Method**: Compare CER/WER before/after LLM correction
 
 **Confidence Threshold Validation (Line 858, article_draft.md):**
+
 - Handwriting is very clear (>95% confidence)
 - **Action**: Validate if this threshold makes sense for your data
 - **Test Method**: Review confidence scores vs. actual accuracy
@@ -155,11 +173,11 @@ These claims need to be measured on your specific data, hardware, and use case. 
 
 ### Web Verification Tasks
 
-- [ ] Verify GPT-5 API pricing (input/output token costs)
-- [ ] Verify TrOCR model sizes on HuggingFace
-- [ ] Verify DeepSeek model memory requirements
-- [ ] Check if confidence thresholds (90%, 70%) are standard or arbitrary
-- [ ] Verify GPU speedup claims in TrOCR literature
+- [x] Verify GPT-5 API pricing (input/output token costs)
+- [x] Verify TrOCR model sizes on HuggingFace
+- [x] Verify DeepSeek model memory requirements
+- [x] Check if confidence thresholds (90%, 70%) are standard or arbitrary
+- [x] Verify GPU speedup claims in TrOCR literature
 
 ### Benchmark Re-run Tasks
 

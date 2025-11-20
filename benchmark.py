@@ -18,7 +18,10 @@ import os
 import time
 import argparse
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from handwriting_ocr import TrOCRModel
 import json
 
 import pandas as pd
@@ -35,11 +38,19 @@ except ImportError:
     print("Warning: pytesseract not available")
 
 try:
-    from handwriting_ocr import TrOCRModel
+    from handwriting_ocr import TrOCRModel, correct_with_llm
     TROCR_AVAILABLE = True
 except ImportError:
     TROCR_AVAILABLE = False
     print("Warning: TrOCR not available")
+
+try:
+    from openai import OpenAI
+    from text_from_pdfs import ask_the_english_prof
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
+    print("Warning: OpenAI not available")
 
 
 def calculate_cer(reference: str, hypothesis: str) -> float:
@@ -111,13 +122,14 @@ def normalize_text(text: str) -> str:
 class OCRBenchmark:
     """Benchmark different OCR methods"""
 
-    def __init__(self, ground_truth_file: Optional[str] = None):
+    def __init__(self, ground_truth_file: Optional[str] = None, openai_client: Optional[OpenAI] = None):
         """
         Initialize benchmark
 
         Args:
             ground_truth_file: JSON file with ground truth annotations
                 Format: {"image_path": "ground truth text", ...}
+            openai_client: OpenAI client for LLM correction (optional)
         """
         self.ground_truth = {}
         if ground_truth_file and os.path.exists(ground_truth_file):
@@ -125,6 +137,7 @@ class OCRBenchmark:
                 self.ground_truth = json.load(f)
             print(f"Loaded {len(self.ground_truth)} ground truth annotations")
 
+        self.openai_client = openai_client
         self.results = []
 
     def benchmark_pytesseract(self, image_path: str) -> Dict:
@@ -159,7 +172,7 @@ class OCRBenchmark:
     def benchmark_trocr(
         self,
         image_path: str,
-        model: Optional[TrOCRModel] = None
+        model: Optional['TrOCRModel'] = None
     ) -> Dict:
         """
         Benchmark TrOCR on an image
@@ -191,11 +204,109 @@ class OCRBenchmark:
             'model': result['model']
         }
 
+    def apply_llm_correction(self, text: str, is_handwriting: bool = False) -> Tuple[str, Dict]:
+        """
+        Apply LLM correction to text and return corrected text with token usage
+
+        Args:
+            text: Text to correct
+            is_handwriting: Whether text is from handwriting OCR
+
+        Returns:
+            Tuple of (corrected_text, token_info)
+        """
+        if not OPENAI_AVAILABLE or not self.openai_client:
+            return text, {'input_tokens': 0, 'output_tokens': 0, 'cost': 0.0}
+
+        start_time = time.time()
+        if is_handwriting:
+            corrected = correct_with_llm(self.openai_client, text, is_handwriting=True)
+        else:
+            corrected = ask_the_english_prof(self.openai_client, text)
+        llm_time = time.time() - start_time
+
+        # Estimate token usage (rough approximation: 1 token ≈ 4 characters)
+        # GPT-5 pricing: $1.25 per 1M input tokens, $10.00 per 1M output tokens
+        input_tokens = len(text) // 4
+        output_tokens = len(corrected) // 4
+        cost = (input_tokens / 1_000_000 * 1.25) + (output_tokens / 1_000_000 * 10.00)
+
+        return corrected, {
+            'input_tokens': input_tokens,
+            'output_tokens': output_tokens,
+            'cost': cost,
+            'llm_time': llm_time
+        }
+
+    def benchmark_pytesseract_gpt5(self, image_path: str) -> Dict:
+        """Benchmark pytesseract with GPT-5 correction"""
+        if not PYTESSERACT_AVAILABLE:
+            return {"error": "pytesseract not available"}
+        if not OPENAI_AVAILABLE or not self.openai_client:
+            return {"error": "OpenAI client not available"}
+
+        import cv2
+
+        # Load and preprocess image
+        img = cv2.imread(image_path, cv2.IMREAD_COLOR)
+        
+        start_time = time.time()
+        preprocessed = preprocess_image(img)
+        extracted = extract_text(preprocessed)
+        ocr_time = time.time() - start_time
+
+        # Apply LLM correction
+        corrected, token_info = self.apply_llm_correction(extracted, is_handwriting=False)
+        total_time = ocr_time + token_info['llm_time']
+
+        result = {
+            'method': 'pytesseract_gpt5',
+            'text': corrected,
+            'processing_time': total_time,
+            'ocr_time': ocr_time,
+            'llm_time': token_info['llm_time'],
+            'input_tokens': token_info['input_tokens'],
+            'output_tokens': token_info['output_tokens'],
+            'cost': token_info['cost']
+        }
+        return result
+
+    def benchmark_trocr_gpt5(self, image_path: str, model: Optional['TrOCRModel'] = None) -> Dict:
+        """Benchmark TrOCR with GPT-5 correction"""
+        if not TROCR_AVAILABLE:
+            return {"error": "TrOCR not available"}
+        if not OPENAI_AVAILABLE or not self.openai_client:
+            return {"error": "OpenAI client not available"}
+
+        # Initialize model if not provided
+        if model is None:
+            model = TrOCRModel()
+
+        start_time = time.time()
+        result = model.extract_text(image_path, preprocess=True)
+        ocr_time = time.time() - start_time
+
+        # Apply LLM correction
+        corrected, token_info = self.apply_llm_correction(result['text'], is_handwriting=True)
+        total_time = ocr_time + token_info['llm_time']
+
+        return {
+            'method': 'trocr_gpt5',
+            'text': corrected,
+            'processing_time': total_time,
+            'ocr_time': ocr_time,
+            'llm_time': token_info['llm_time'],
+            'input_tokens': token_info['input_tokens'],
+            'output_tokens': token_info['output_tokens'],
+            'cost': token_info['cost'],
+            'model': result['model']
+        }
+
     def benchmark_image(
         self,
         image_path: str,
         methods: List[str] = ['pytesseract', 'trocr'],
-        trocr_model: Optional[TrOCRModel] = None
+        trocr_model: Optional['TrOCRModel'] = None
     ) -> List[Dict]:
         """
         Benchmark multiple OCR methods on a single image
@@ -218,6 +329,10 @@ class OCRBenchmark:
                 result = self.benchmark_pytesseract(image_path)
             elif method == 'trocr':
                 result = self.benchmark_trocr(image_path, trocr_model)
+            elif method == 'pytesseract_gpt5':
+                result = self.benchmark_pytesseract_gpt5(image_path)
+            elif method == 'trocr_gpt5':
+                result = self.benchmark_trocr_gpt5(image_path, trocr_model)
             else:
                 print(f"Unknown method: {method}")
                 continue
@@ -309,6 +424,10 @@ class OCRBenchmark:
             # Summary statistics by method
             f.write("## Summary by Method\n\n")
 
+            if len(df) == 0 or 'method' not in df.columns:
+                f.write("No results to summarize.\n\n")
+                return
+
             for method in df['method'].unique():
                 method_df = df[df['method'] == method]
 
@@ -345,13 +464,30 @@ class OCRBenchmark:
 
             # Cost estimation
             f.write("## Cost Estimation\n\n")
-            f.write("Assuming GPT-4o pricing (~$0.005 per page for correction):\n\n")
+            f.write("GPT-5 pricing: $1.25 per 1M input tokens, $10.00 per 1M output tokens\n\n")
 
             num_images = len(df['image_path'].unique())
-            llm_cost = num_images * 0.005
-
-            f.write(f"- Total images: {num_images}\n")
-            f.write(f"- Estimated LLM correction cost: ${llm_cost:.2f}\n")
+            
+            # Calculate actual costs from token usage if available
+            if 'cost' in df.columns:
+                llm_methods = df[df['method'].str.contains('gpt5', na=False)]
+                if len(llm_methods) > 0:
+                    total_cost = llm_methods['cost'].sum()
+                    avg_cost_per_page = llm_methods['cost'].mean()
+                    f.write(f"- Total images: {num_images}\n")
+                    f.write(f"- Total LLM correction cost: ${total_cost:.4f}\n")
+                    f.write(f"- Average cost per page: ${avg_cost_per_page:.4f}\n")
+                    if 'input_tokens' in llm_methods.columns:
+                        total_input = llm_methods['input_tokens'].sum()
+                        total_output = llm_methods['output_tokens'].sum()
+                        f.write(f"- Total input tokens: {total_input:,}\n")
+                        f.write(f"- Total output tokens: {total_output:,}\n")
+                else:
+                    f.write(f"- Total images: {num_images}\n")
+                    f.write("- No LLM correction methods in results\n")
+            else:
+                f.write(f"- Total images: {num_images}\n")
+                f.write("- No cost data available (no LLM methods used)\n")
             f.write("\n")
 
         print(f"\nReport saved to {output_file}")
@@ -406,8 +542,13 @@ def main():
         type=str,
         nargs='+',
         default=['pytesseract', 'trocr'],
-        choices=['pytesseract', 'trocr'],
+        choices=['pytesseract', 'trocr', 'pytesseract_gpt5', 'trocr_gpt5'],
         help='OCR methods to benchmark'
+    )
+    parser.add_argument(
+        '--use-llm',
+        action='store_true',
+        help='Enable LLM correction (requires OPENAI_API_KEY)'
     )
     parser.add_argument(
         '--output',
@@ -445,8 +586,28 @@ def main():
         print(f"Error: Input directory '{args.input}' does not exist")
         return
 
+    # Initialize OpenAI client if needed
+    openai_client = None
+    if args.use_llm or any('gpt5' in m for m in args.methods):
+        if not OPENAI_AVAILABLE:
+            print("Error: OpenAI not available. Install openai package and set OPENAI_API_KEY")
+            return
+        try:
+            # Load environment variables from .env file
+            try:
+                from dotenv import load_dotenv
+                load_dotenv()
+            except ImportError:
+                pass  # dotenv not available, try without it
+            
+            openai_client = OpenAI()
+            print("OpenAI client initialized")
+        except Exception as e:
+            print(f"Error initializing OpenAI client: {e}")
+            return
+
     # Run benchmark
-    benchmark = OCRBenchmark(ground_truth_file=args.ground_truth)
+    benchmark = OCRBenchmark(ground_truth_file=args.ground_truth, openai_client=openai_client)
     df = benchmark.benchmark_directory(
         args.input,
         methods=args.methods,
