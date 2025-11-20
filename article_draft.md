@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Optical Character Recognition (OCR) has evolved dramatically over the past decade. While traditional OCR engines like Tesseract excel at typed documents, they struggle with handwritten text. Meanwhile, modern transformer-based models handle handwriting well but may be overkill for clean printed documents. This article presents a comprehensive OCR framework that combines both approaches, allowing you to choose the right tool for each job.
+Optical Character Recognition (OCR) has evolved dramatically over the past decade. While traditional OCR engines like Tesseract excel at typed documents, they can struggle with handwritten text. Meanwhile, modern transformer-based models handle handwriting well but may be overkill for clean printed documents. This article presents a comprehensive OCR framework that combines both approaches, allowing you to choose the right tool for each job.
 
 This project implements three integrated systems:
 
@@ -14,14 +14,13 @@ The framework is production-ready, handling batch processing, error correction, 
 
 ### Real-World Use Case: The August Anton Project
 
-This framework was developed to digitize a 30-page handwritten autobiography by August Anton (1830-1911), my great-great-grandfather. The documents present typical OCR challenges: aged paper, faded ink, cursive handwriting, and varied photo quality. This real-world application shaped the design decisions throughout the project.
+This framework was developed to digitize a 30-page handwritten autobiography by August Anton (1830-1911), my great-great-grandfather. The documents present typical OCR challenges: aged paper, faded ink, and varied photo quality. This real-world application shaped the design decisions throughout the project.
 
 ### What You'll Learn
 
 - How to build robust image preprocessing pipelines for OCR
 - When to use traditional OCR vs. transformer-based models
 - How to leverage LLMs for intelligent OCR error correction
-- Strategies for production deployment, including batch processing and monitoring
 - Performance benchmarking techniques (CER, WER metrics)
 - Building interactive tools for result validation
 
@@ -58,6 +57,7 @@ Traditional OCR works best for typed or printed documents. The key to accuracy i
 ### Understanding the Input: The Challenge of Historical Documents
 
 Historical documents present unique challenges:
+
 - Aged paper with yellowing and texture
 - Faded or inconsistent ink
 - Scan artifacts and noise
@@ -110,6 +110,7 @@ def preprocess_image(img):
 ### Region-Based Text Extraction: Maintaining Document Structure
 
 Whole-page OCR often loses reading order and struggles with multi-column layouts. Our solution: detect text regions, sort them by position, and process each separately.
+This does have some limitations on complex layouts but is much better than ignoring the position of the blocks.
 
 ```python
 def extract_text(img):
@@ -147,9 +148,9 @@ def extract_text(img):
         if text:
             cnt_list.append((x, y, text))
 
-    # Sort by Y position to maintain reading order
-    sorted_list = sorted(cnt_list, key=lambda c: c[1])
-
+    # Sort by y then x position to keep text in correct order.
+    sorted_list = sorted(cnt_list, key=lambda c: (c[1], c[0])) 
+    
     # Build final text with paragraph detection
     all_text = []
     last_y = 0
@@ -220,6 +221,7 @@ def main():
 ```
 
 This creates an auditable trail with:
+
 - **results.csv** - Structured data with processing status
 - **extracted.txt** - Combined text output
 - **Preprocessed images** - Saved for manual inspection
@@ -227,6 +229,7 @@ This creates an auditable trail with:
 ### AI-Powered OCR Correction: Fixing Common Errors
 
 Even the best OCR makes systematic errors:
+
 - "rn" misread as "m"
 - "l" (lowercase L) confused with "I" (capital i)
 - Missing or extra spaces
@@ -280,28 +283,33 @@ with open(os.path.join(output_dir, 'corrected.txt'), 'w') as f:
 ```
 
 **Cost considerations:**
-- GPT-4o costs approximately $0.005 per page
-- For a 30-page document: ~$0.15 total
+
+- GPT-4o API pricing (as of 2024): $2.50 per 1M input tokens, $10.00 per 1M output tokens
+- Typical OCR correction: ~$0.02-0.03 per page (varies with page length)
+- For a 30-page document: ~$0.60-0.90 total
 - Significantly cheaper than manual correction
 - Can be selectively applied to pages with low confidence
 
 ### Running the Document OCR Pipeline
 
 **Setup:**
+
 ```bash
 # Install system dependencies
 brew install tesseract poppler  # macOS
 # apt-get install tesseract-ocr poppler-utils  # Ubuntu
 
-# Create environment
-conda env create -f local_environment.yml
-conda activate ./env
+# Create virtual environment and install dependencies
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
 
 # Set API key
 echo "OPENAI_API_KEY=your-key-here" > .env
 ```
 
 **Processing documents:**
+
 ```bash
 # Process all images listed in input_file_list.txt
 python text_from_pdfs.py
@@ -311,6 +319,7 @@ python text_from_pdfs.py --max 5
 ```
 
 **Outputs:**
+
 - `output/results.csv` - Processing results and metadata
 - `output/extracted.txt` - Raw OCR text
 - `output/corrected.txt` - AI-corrected text
@@ -321,6 +330,7 @@ python text_from_pdfs.py --max 5
 After OCR correction, we have accurate plain text. The final step transforms this into well-structured Markdown documents using a second AI pass.
 
 **Why a separate formatting step?**
+
 - Separates concerns: correction vs. formatting
 - Allows different models/prompts for each task
 - Creates publishable documentation from raw text
@@ -385,11 +395,13 @@ def main():
 ```
 
 **Key parameters:**
+
 - `top_p=0.01` - Forces deterministic output, ensuring consistent formatting across runs
 - Focused prompt - Adds structure without changing content
 - Batch processing - Handles entire documents efficiently
 
 **Running markdown generation:**
+
 ```bash
 # Process all pages
 python make_md.py --file output/results.csv
@@ -429,6 +441,7 @@ Handwritten text requires a different approach. Transformer-based models like Tr
 ### Why TrOCR? The Transformer Advantage
 
 Microsoft's TrOCR leverages transformer architecture:
+
 - **Pre-trained** on millions of handwritten samples
 - **Context-aware** - understands words, not just characters
 - **Handles variations** - different writing styles, cursive, print
@@ -482,6 +495,7 @@ class TrOCRModel:
 ```
 
 **Model variants:**
+
 - **trocr-base-handwritten** - 334M parameters, ~1GB download
 - **trocr-large-handwritten** - 558M parameters, ~2GB download
 
@@ -520,6 +534,7 @@ def preprocess_image(self, image):
 ```
 
 **CLAHE explained:**
+
 - **Adaptive** - Applies different thresholds to different regions
 - **Contrast limited** - Prevents over-amplification of noise
 - **Tile-based** - Divides image into 8×8 grids for local processing
@@ -653,6 +668,7 @@ def reduce_glare(image):
 ```
 
 **When to apply each technique:**
+
 - **Shadow removal** - When you see dark regions that aren't text
 - **Glare reduction** - For photos of glossy notebooks or pen ink
 - **CLAHE** (from earlier) - General lighting normalization
@@ -785,6 +801,7 @@ def process_batch(
 ### Running the Handwriting OCR Pipeline
 
 **Basic usage:**
+
 ```bash
 # Create input directory and add handwritten note photos
 mkdir handwriting_images
@@ -795,6 +812,7 @@ python handwriting_ocr.py --input handwriting_images/
 ```
 
 **Advanced options:**
+
 ```bash
 # With perspective correction and LLM correction
 python handwriting_ocr.py \
@@ -814,6 +832,7 @@ python handwriting_ocr.py \
 ```
 
 **Outputs:**
+
 - `output/handwriting_results.csv` - Processing results
 - `output/extracted_handwriting.txt` - Raw OCR text
 - `output/corrected_handwriting.txt` - LLM-corrected text
@@ -826,12 +845,14 @@ While TrOCR is significantly better than traditional OCR for handwriting, it sti
 #### When to Apply LLM Correction to Handwriting
 
 **Recommended scenarios:**
+
 - **Production applications** - Where accuracy is critical
 - **Legal/medical documents** - Zero tolerance for errors
 - **Historical documents** - Where context helps interpret faded text
 - **Mixed writing styles** - Cursive, print, and shorthand combined
 
 **Skip LLM correction if:**
+
 - You're just testing/prototyping
 - Budget is extremely constrained
 - Handwriting is very clear (>95% confidence)
@@ -982,6 +1003,7 @@ def main():
 The viewer presents different layouts optimized for each OCR type:
 
 **Layout for Handwriting OCR (3-column):**
+
 ```
 ┌────────────────────────────────────────────────────────┐
 │ Original Photo  │ Preprocessed  │ TrOCR Output         │
@@ -990,6 +1012,7 @@ The viewer presents different layouts optimized for each OCR type:
 ```
 
 **Layout for Document OCR (4-column):**
+
 ```
 ┌────────────────────────────────────────────────────────┐
 │ Original Image  │ Preprocessed │ Extracted │ Corrected│
@@ -998,6 +1021,7 @@ The viewer presents different layouts optimized for each OCR type:
 ```
 
 This allows side-by-side comparison of each processing step:
+
 - See the original input quality
 - Verify preprocessing improved the image
 - Compare raw OCR vs. AI-corrected text
@@ -1055,6 +1079,7 @@ def visualize_text_regions(image, ocr_results):
 ```
 
 **In Streamlit:**
+
 ```python
 # Add checkbox to toggle bounding boxes
 show_boxes = st.checkbox("Show text regions with confidence scores")
@@ -1196,6 +1221,7 @@ def create_export_options(df, current_page):
 These interactive features make the viewer a production-ready tool for quality assurance and result validation.
 
 **Page navigation:**
+
 ```python
 # Navigation buttons
 col1, col2, col3, col4, col5 = st.columns(5)
@@ -1229,6 +1255,7 @@ if n_pages > 1:
 ```
 
 **Side-by-side comparison:**
+
 ```python
 # Display images
 col1, col2 = st.columns(2)
@@ -1264,6 +1291,7 @@ streamlit run viewer_app.py
 ```
 
 The viewer opens at `http://localhost:8501` with:
+
 - Mode selector (Document OCR / Handwriting OCR)
 - Page navigation (buttons + slider)
 - Image comparison (original vs. preprocessed)
@@ -1313,6 +1341,7 @@ def calculate_wer(reference, hypothesis):
 ```
 
 **Running benchmarks:**
+
 ```bash
 # Create ground truth template
 python benchmark.py --input handwriting_images/ --create-template
@@ -1340,6 +1369,7 @@ Based on testing with the August Anton documents:
 | TrOCR + GPT-4o | 0.02-0.06 | 0.04-0.10 | ~4-6s/page | ~1.5s/page | $0.005/page |
 
 **Key findings:**
+
 - LLM correction improves both methods significantly
 - TrOCR handles handwriting much better than Pytesseract
 - GPU acceleration provides 5-10x speedup for TrOCR
@@ -1348,6 +1378,7 @@ Based on testing with the August Anton documents:
 ### When to Use Which Approach
 
 **Decision tree:**
+
 ```
 Is the text handwritten?
 ├─ No → Use Pytesseract (faster, accurate for typed text)
@@ -1365,6 +1396,7 @@ Should you use LLM correction?
 ### Production Deployment Considerations
 
 **Scaling strategies:**
+
 ```python
 from multiprocessing import Pool
 
@@ -1384,6 +1416,7 @@ def process_batch_parallel(image_paths, output_dir, config, num_workers=4):
 ```
 
 **Error handling and monitoring:**
+
 ```python
 import logging
 
@@ -1420,6 +1453,7 @@ def process_with_monitoring(image_path, output_dir):
 ```
 
 **Storage and archival:**
+
 ```python
 import json
 from datetime import datetime
@@ -1452,6 +1486,7 @@ def save_results_with_metadata(results, output_dir):
 ### Multi-Language Support
 
 **Tesseract language packs:**
+
 ```bash
 # Install additional languages
 brew install tesseract-lang  # Installs all languages
@@ -1468,6 +1503,7 @@ text = pytesseract.image_to_string(image, lang='fra')  # French
 ```
 
 **TrOCR multilingual models:**
+
 - `microsoft/trocr-base-printed` - English printed text
 - `microsoft/trocr-large-printed` - Multilingual printed
 - Community models for specific languages on HuggingFace
@@ -1515,6 +1551,7 @@ def correct_with_vision(client, image_path, extracted_text):
 ```
 
 This approach:
+
 - Provides visual context to the LLM
 - Helps with ambiguous characters
 - Better handles formatting and layout
@@ -1680,6 +1717,7 @@ def should_capture(frame, previous_frame, stability_threshold=0.95):
 ```
 
 **Performance tips:**
+
 - Run OCR in background thread to keep UI responsive
 - Cache model in memory (don't reload per frame)
 - Use GPU on mobile devices that support it
@@ -1748,24 +1786,28 @@ To implement this in your own projects:
 #### Academic Papers
 
 **TrOCR: Transformer-based Optical Character Recognition**
+
 - Li, M., Lv, T., Chen, J., Cui, L., Lu, Y., Florencio, D., Zhang, C., Li, Z., & Wei, F. (2023)
 - *Proceedings of the AAAI Conference on Artificial Intelligence, 37*(11), 13094-13102
 - [https://arxiv.org/abs/2109.10282](https://arxiv.org/abs/2109.10282)
 - State-of-the-art results on handwritten text with transformer architecture
 
 **GPT-4o System Card**
+
 - OpenAI. (2024)
 - *arXiv preprint arXiv:2410.21276*
 - [https://arxiv.org/abs/2410.21276](https://arxiv.org/abs/2410.21276)
 - Multimodal model capabilities including text and vision
 
 **An Overview of the Tesseract OCR Engine**
+
 - Smith, R. (2007)
 - *Proceedings of the Ninth International Conference on Document Analysis and Recognition (ICDAR '07)*, pp. 629-633
 - IEEE Computer Society
 - Foundation of open-source OCR technology
 
 **IAM Handwriting Database**
+
 - Marti, U.-V., & Bunke, H. (2002)
 - *International Journal on Document Analysis and Recognition, 5*(2-3), 39-46
 - Standard benchmark for handwriting recognition research
@@ -1773,6 +1815,7 @@ To implement this in your own projects:
 #### Documentation and Tools
 
 **Official Documentation:**
+
 - [Tesseract OCR Documentation](https://tesseract-ocr.github.io/) - Installation, usage, language packs
 - [TrOCR on HuggingFace](https://huggingface.co/docs/transformers/model_doc/trocr) - Model documentation and examples
 - [OpenAI API Documentation](https://platform.openai.com/docs) - GPT-4o usage and pricing
@@ -1780,10 +1823,12 @@ To implement this in your own projects:
 - [Streamlit Documentation](https://docs.streamlit.io/) - Building interactive apps
 
 **Model Repositories:**
+
 - [TrOCR Models on HuggingFace](https://huggingface.co/models?search=trocr) - Pre-trained models
 - [Tesseract Language Data](https://github.com/tesseract-ocr/tessdata) - Language packs for Tesseract
 
 **Libraries and Frameworks:**
+
 - [HuggingFace Transformers](https://huggingface.co/docs/transformers/) - Transformer model library
 - [OpenCV](https://opencv.org/) - Computer vision and image processing
 - [Pillow (PIL)](https://pillow.readthedocs.io/) - Python imaging library
@@ -1791,11 +1836,13 @@ To implement this in your own projects:
 - [pdf2image](https://github.com/Belval/pdf2image) - PDF to image conversion
 
 **Preprocessing Techniques:**
+
 - [Pre-processing in OCR](https://towardsdatascience.com/pre-processing-in-ocr-fc231c6035a7) - Detailed guide
 - [Image Thresholding Tutorial](https://docs.opencv.org/4.x/d7/d4d/tutorial_py_thresholding.html) - OpenCV guide
 - [Morphological Operations](https://docs.opencv.org/4.x/d9/d61/tutorial_py_morphological_ops.html) - Text region detection
 
 **Benchmarking and Datasets:**
+
 - [Papers with Code - OCR](https://paperswithcode.com/task/optical-character-recognition) - Latest research
 - [Google Dataset Search](https://datasetsearch.research.google.com/) - Find OCR datasets
 - [IAM Database](http://www.fki.inf.unibe.ch/databases/iam-handwriting-database) - Handwriting benchmark
@@ -1803,6 +1850,7 @@ To implement this in your own projects:
 #### Code Repository
 
 This article's complete source code includes:
+
 - Full implementation of both OCR pipelines
 - Streamlit viewer with all interactive features
 - Benchmark tools with CER/WER metrics
@@ -1820,6 +1868,7 @@ The project demonstrates that production-quality OCR doesn't require expensive c
 ### Acknowledgments
 
 **Technologies:**
+
 - Tesseract OCR (Google/contributors)
 - TrOCR (Microsoft Research)
 - GPT-4o (OpenAI)
@@ -1828,6 +1877,7 @@ The project demonstrates that production-quality OCR doesn't require expensive c
 - Streamlit
 
 **Research papers:**
+
 - Li, M., et al. (2023). TrOCR: Transformer-based Optical Character Recognition with Pre-trained Models. AAAI 2023.
 - OpenAI. (2024). GPT-4o System Card.
 - Smith, R. (2007). An Overview of the Tesseract OCR Engine. ICDAR 2007.
@@ -1872,7 +1922,11 @@ august-ocr/
 │                               # - Common preprocessing functions
 │
 ├── requirements.txt            # Python dependencies
-├── local_environment.yml       # Conda environment specification
+├── requirements_deepseek_4bit.txt  # DeepSeek-specific dependencies
+│
+├── test_deepseek_ocr_4bit.py   # DeepSeek OCR testing script
+├── ds_ocr_example.py           # DeepSeek OCR example
+├── ds_vllm_example.py          # DeepSeek vLLM example
 │
 ├── output/                     # Generated results
 │   ├── results.csv             # Document OCR results
@@ -1882,12 +1936,16 @@ august-ocr/
 │   ├── pages.md                # Formatted Markdown
 │   └── *_proc.jpg              # Preprocessed images
 │
-├── handwriting_images/         # Input handwritten notes
+├── output_deepseek_4bit/       # DeepSeek 4-bit model outputs
+│
+├── images/                     # Input images (handwritten notes, documents)
+├── screenshots/                 # Screenshots and documentation images
 ├── input_file_list.txt         # Batch processing file list
 │
 ├── README.md                   # Quick start guide
 ├── TUTORIAL_OUTLINE.md         # Detailed tutorial outline
 ├── HANDWRITING_DATASETS.md     # Dataset recommendations
+├── DEEPSEEK_4BIT_TEST.md       # DeepSeek 4-bit testing documentation
 └── article_draft.md            # This article
 ```
 
@@ -1917,22 +1975,38 @@ august-ocr/
    - Calculates error rates
    - Generates comparison reports
 
+6. **test_deepseek_ocr_4bit.py** - DeepSeek OCR testing
+   - Tests quantized 4-bit DeepSeek model
+   - Handles handwriting recognition
+   - Performance benchmarking
+
+7. **ds_ocr_example.py** - DeepSeek OCR usage example
+   - Demonstrates DeepSeek API integration
+   - OCR workflow examples
+
+8. **ds_vllm_example.py** - DeepSeek vLLM integration
+   - vLLM server usage examples
+   - Batch processing with DeepSeek
+
 ### B. Complete Setup Guide
 
 ### System Dependencies
 
 **macOS:**
+
 ```bash
 brew install tesseract poppler
 ```
 
 **Ubuntu/Debian:**
+
 ```bash
 sudo apt-get update
 sudo apt-get install -y tesseract-ocr poppler-utils
 ```
 
 **Windows:**
+
 - Install Tesseract from [GitHub releases](https://github.com/UB-Mannheim/tesseract/wiki)
 - Install Poppler from [poppler-windows](http://blog.alivate.com.au/poppler-windows/)
 - Add both to system PATH
@@ -1940,6 +2014,7 @@ sudo apt-get install -y tesseract-ocr poppler-utils
 ### Python Environment
 
 **Using Conda (recommended):**
+
 ```bash
 # Create environment
 conda env create -f local_environment.yml
@@ -1947,6 +2022,7 @@ conda activate ./env
 ```
 
 **Using pip:**
+
 ```bash
 # Create virtual environment
 python -m venv venv
@@ -1988,6 +2064,7 @@ python benchmark.py \
 ### Troubleshooting
 
 **"Tesseract not found":**
+
 ```bash
 # Verify installation
 tesseract --version
@@ -1996,6 +2073,7 @@ tesseract --version
 ```
 
 **"CUDA out of memory":**
+
 ```bash
 # Use CPU instead
 python handwriting_ocr.py --input images/ --no-gpu
@@ -2005,6 +2083,7 @@ python handwriting_ocr.py --input images/ --max 10
 ```
 
 **"OpenAI API error":**
+
 ```bash
 # Check API key
 python -c "import os; from dotenv import load_dotenv; load_dotenv(); print(os.getenv('OPENAI_API_KEY'))"

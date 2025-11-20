@@ -85,8 +85,8 @@ def extract_text(img):
             cnt_list.append((x,y,text))
         else:
             print(" --> (nil)")
-    # Sort by y position to keep text in correct order.
-    sorted_list = sorted(cnt_list, key=lambda c: c[1])
+    # Sort by y then x position to keep text in correct order.
+    sorted_list = sorted(cnt_list, key=lambda c: (c[1], c[0])) 
     # Return as text paragraphs
     all_text = []
     last_y = 0

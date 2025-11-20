@@ -187,5 +187,4 @@ https://colab.research.google.com/github/Alireza-Akhavan/LLM/blob/main/deepseek_
 ## Source Files
 
 - **Test script**: `test_deepseek_ocr_4bit.py`
-- **Jupyter notebook**: `DeepSeek_OCR_Quantized_to_4bit.ipynb`
 - **Requirements**: `requirements_deepseek_4bit.txt`
