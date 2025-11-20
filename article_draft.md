@@ -261,7 +261,7 @@ def ask_the_english_prof(client, text):
     ]
 
     completion = client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-5",
         messages=messages
     )
 
@@ -366,7 +366,7 @@ def gen_markdown(client, text):
 
     # Use very low top_p for consistency
     completion = client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-5",
         top_p=0.01,  # Ensures deterministic output
         messages=messages
     )
@@ -906,7 +906,7 @@ def correct_handwriting_with_llm(client, text, is_cursive=False):
     ]
 
     completion = client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-5",
         messages=messages
     )
 
@@ -1543,7 +1543,7 @@ def correct_with_vision(client, image_path, extracted_text):
     ]
 
     response = client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-5",
         messages=messages
     )
 

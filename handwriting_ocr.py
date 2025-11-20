@@ -352,7 +352,7 @@ def correct_with_llm(client: OpenAI, text: str, is_handwriting: bool = True) -> 
     ]
 
     completion = client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-5",
         messages=messages
     )
 
