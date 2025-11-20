@@ -15,7 +15,7 @@ from openai import OpenAI
 from dotenv import load_dotenv
 
 
-MODEL = "gpt-4o"
+MODEL = "gpt-5"
 
 SYSTEM_PROMPT = "You are a helpful assistant who is an expert on the English language, skilled in vocabulary, " \
                 "pronunciation, and grammar. "

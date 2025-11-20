@@ -8,7 +8,7 @@ from openai import OpenAI
 from dotenv import load_dotenv
 
 
-MODEL = "gpt-4o"
+MODEL = "gpt-5"
 TOP_P = 0.01
 
 

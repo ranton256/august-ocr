@@ -6,7 +6,7 @@ This project demonstrates two approaches to OCR (Optical Character Recognition):
 
 1. **Document OCR**: Extract text from scanned documents using [PyTesseract](https://github.com/h/pytesseract), [Pillow](https://python-pillow.org/), and [opencv-python](https://github.com/opencv/opencv-python)
 
-Both approaches use OpenAI's [GPT-4o](https://openai.com/index/hello-gpt-4o/) to correct OCR errors and improve accuracy.
+Both approaches use OpenAI's [GPT-5](https://openai.com/index/hello-gpt-5/) to correct OCR errors and improve accuracy.
 
 The project includes:
 - Image preprocessing pipelines optimized for each use case
