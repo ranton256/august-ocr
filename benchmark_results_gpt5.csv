@@ -1,0 +1,346 @@
+method,text,processing_time,image_path,has_ground_truth,model,ocr_time,llm_time,input_tokens,output_tokens,cost
+pytesseract,"
+
+REFLECTIONS""
+
+Memories of the Life of August Anton
+written as a result of the motivation of his friends
+published by the writer
+
+(Eagle)",2.7597429752349854,images/IMG_8478.jpg,False,,,,,,
+trocr,2 3 months ago,0.7374889850616455,images/IMG_8478.jpg,False,microsoft/trocr-base-handwritten,,,,,
+pytesseract_gpt5,"Would you like this polished into idiomatic English? Here are a few clean title-page options:
+
+- Modern, concise:
+Reflections: Memoirs of August Anton
+Written at the urging of his friends
+Self-published
+
+- Classic/period tone:
+Reflections: Reminiscences from the Life of August Anton
+Composed at the behest of his friends
+Published by the Author
+
+- If “Eagle” is the author’s name:
+Reflections: Memoirs of August Anton
+Written at the urging of his friends
+by Eagle
+
+- If “Eagle” is a place or imprint:
+Reflections: Memoirs of August Anton
+Written at the urging of his friends
+Published by the Author
+Eagle
+
+Quick fixes I made:
+- Removed the stray closing quote after Reflections.
+- “Memories of the Life of…” -> “Memoirs of…” or “Reminiscences from the Life of…”
+- “written as a result of the motivation of his friends” -> “written at the urging of his friends.”
+- “published by the writer” -> “Published by the Author” or “Self-published.”
+
+Is “Eagle” a pen name, a press, or a location? And do you prefer a modern or period style?",41.44338917732239,images/IMG_8478.jpg,False,,2.8409371376037598,38.60245203971863,34.0,258.0,0.0026225
+trocr_gpt5,2-3 months ago,7.1271607875823975,images/IMG_8478.jpg,False,microsoft/trocr-base-handwritten,0.6876668930053711,6.439493894577026,3.0,3.0,3.375e-05
+pytesseract,"
+‘To my friends and countrymen!
+
+Approached from many sides to write down my life’s memories as well as the events
+Or the year ‘48, as far as | was personally touched by them, and to publish these
+Memories, | will herewith fulfill the wish of my friends and only ask for your kind
+indulgence, if my descriptions fail to be elegant. Well then, | will do the best / can.
+
+Once upon a time, many, many years ago, in the old city of Zerbst, in the beautiful
+‘and of Anhalt, located in the German homeland, a strong boy was born to an honest
+Oraper by his mistress. This boy was later baptized in the reformed church and
+received the name August. Now / cannot honestly remember all the details, only this
+much was clear to me, that |! must be August. Now, the boy grew up, food and drink
+Ne loved to taste and when he, because of his young ways, did some dumb pranks,
+he then often received quite sensible memories from his father or his mother.
+
+With my sixth year, | was sent to a so-called ""Winkel School” (Corner school) which
+was run by an old Kantor widow named ""Durre"" and was assisted by her already
+pretty mature daughter “Auguste”. Later, when the City Council of Zerbst had a huge
+Stately building erected and designated jt to be a public school, all school-aged
+children, from five to fourteen years old and to attend it and the “Winkel School”
+ceased operation. At the examination, | received a report card: Accepted into first
+grade on a trial basis! | went there for the next five years and in the last two years
+/ was the top student.
+
+In the year 1844 | was confirmed and now it was time to chose a profession for life.
+/ would have loved to become a fur tanner, however, | was unable to find a master
+to teach me. In 1842 1 began an apprenticeship at a brother of my mother, who was
+a master in the fur tanning profession, and | worked at his place during my free time
+when / did not have school. / had to be confirmed first and before | was able to be
+confirmed, he died and, since / could not find another master, even though | tried very
+hard, | began my apprenticeship with Franz Wiegand, the best cabinet maker around.
+The apprenticeship period lasted four years, 8 June 1848, after having passed my
+apprentice exam, | was declared carpenter officer and the court assessor in office took
+my word and handshake and made it my duty to travel to foreign lands, to see other
+cities and countries, so that, when the time came, | could become a capable master
+of the trade and a good citizen. Now, that | have honestly done; before / tell about
+it, though, | would like to first talk a bit about the beautiful land of Anhalt and then
+about the events of the year 48.
+
+Now, Curing the beautiful pre-March time, the reigning princes of our German
+fatherland were the A and O. (Alpha and Omega). The sun, around which everything
+turned and! would like to be permitted to describe some of our has-been landowners.
+“Albrecht the Bear"", a mighty warrior before God, was the founder of the dynasty.
+/ suppose there would be little interest if | wanted to recite the entire family tree.
+We ‘il talk a little bit about the old Dessauer, the old Mustache, who was a successful
+general under two emperors and two kings. He did a stupid prank in the eyes of his",3.7858409881591797,images/IMG_8479.jpg,False,,,,,,
+trocr,0 0,0.5028848648071289,images/IMG_8479.jpg,False,microsoft/trocr-base-handwritten,,,,,
+pytesseract_gpt5,"Would you like this passage polished into clear, natural English? Here is a cleaned, idiomatic version that keeps your voice and meaning:
+
+To my friends and countrymen!
+
+Urged from many sides to set down the memories of my life, as well as the events of the year ’48 insofar as they touched me personally, and to publish these recollections, I hereby fulfill my friends’ wish and only ask your kind indulgence if my descriptions are less than elegant. I will, at any rate, do my best.
+
+Once upon a time, many years ago, in the old city of Zerbst, in the fair land of Anhalt in our German homeland, a sturdy boy was born to an honest [craftsman] and his wife. This boy was later baptized in the Reformed Church and received the name August. I cannot honestly recall all the details; only this much was clear to me: I must be that August. The boy grew up; he loved food and drink, and when, in the heedlessness of youth, he played foolish pranks, he often received quite sensible reminders from his father or his mother.
+
+At six years of age I was sent to a so‑called Winkel‑Schule (“corner school”), which was run by an elderly cantor’s widow named Dürre, assisted by her already quite grown daughter, Auguste. Later, when the city council of Zerbst had a large, stately building erected and designated it a public school, all children from five to fourteen were required to attend, and the Winkel‑Schule ceased to operate. At the entrance examination I received a report: admitted to the first class on probation. I attended for the next five years, and in the last two I was the top pupil.
+
+In 1844 I was confirmed, and it was time to choose a lifelong trade. I would gladly have become a fur‑dresser/tanner, but I could not find a master to take me on. In 1842 I had begun an apprenticeship with my mother’s brother, himself a master fur‑dresser, and I worked for him in my free hours when I was not at school. But I had to be confirmed before I could be formally bound apprentice; before that could happen he died, and, although I tried very hard, I found no other master. I therefore began an apprenticeship with Franz Wiegand, the best cabinetmaker around. The term of apprenticeship lasted four years. On 8 June 1848, after passing my apprentice’s examination, I was declared a journeyman carpenter, and the court assessor in office took my oath and handshake, charging me to travel abroad, to see other cities and countries, so that in due time I might become a capable master and a good citizen. That I have indeed done; but before I tell of it, I would first like to say a little about the beautiful land of Anhalt and then about the events of ’48.
+
+During the beautiful pre‑March period, the reigning princes of our German fatherland were the alpha and omega—the sun around which everything revolved—and I would beg leave to sketch a few of our former rulers. “Albrecht the Bear,” a mighty warrior before God, was the founder of the dynasty. I suppose it would be of little interest were I to recite the entire family tree. We shall speak a little of the Old Dessauer, the Old Moustache, who was a successful general under two emperors and two kings. He played a prank which, in the eyes of his …
+
+Notes and small queries:
+- Oraper by his mistress: looks like an OCR error. I’ve put [craftsman] and “his wife” as the most likely sense; if you know the specific trade (e.g., cooper, carpenter, draper), I can insert it.
+- Winkel School: I kept the German term with a brief gloss; we can fully anglicize it if you prefer.
+- carpenter officer: I rendered this as journeyman carpenter, which fits guild terminology.
+- took my word and handshake: likely “oath and handshake”; I used oath.
+- Curing -> During; has-been landowners -> former rulers; adjusted for idiomatic English.
+- Old Moustache: kept your term; if you intend a known sobriquet, we can standardize it.
+
+If you’d like a more literal line‑by‑line edit or a more modern, streamlined style, tell me your preference.",53.98612308502197,images/IMG_8479.jpg,False,,3.814004898071289,50.172118186950684,815.0,995.0,0.010968750000000001
+trocr_gpt5,O O,34.46113300323486,images/IMG_8479.jpg,False,microsoft/trocr-base-handwritten,0.5406038761138916,33.92052912712097,0.0,0.0,0.0
+pytesseract,"
+
+relatives, who were very proud of their ancestors, to where he fell in love with a
+
+common girl, the daughter of a pharmacist, her name being Anna Foehsin, and he
+
+(hen married her contrary to all arguments, made her into a reigning princess and lived
+
+with her happily for a long time, and also made sure there were plenty of offsprings.
+
+To possess her, he did not back down from anything, he even stabbed her alleged
+lover, whom he found once in a kneeling position in front of her. For this, a common
+
+Mortal would have been punished as a murderer, but since he stemmed from God’s
+Grace, he was allowed to do this. More about his characterization is the following:
+As he once, as an Austrian field general, returned from a war victoriously, he was
+received by the people of a southern city with a fitting festive march (music), which
+he liked so very much, that this march had to be played at each fitting occasion. He
+did not want to hear anything else anymore, just the so-called ""Dessauer March"";
+yes, even in church, when the entire congregation sang holy songs, he would shout
+out loudly with his terrible bear voice the favorite march, for which the following text
+was written by agenius:
+
+This is how we live!
+This is how we live!
+This is how we live each day!
+With the most beautiful drinking buddies!
+In the morning with brandy,
+At noon with beer,
+In the evening with the virgins in their bedroom!
+
+Even when he was on his deathbed they had to play this melody for him and he would
+yell out the text along, until his last breath.
+
+For a successor Franz, called by all his subordinates Father Franz, this was an
+opportunity, being a quite tight and people loving prince, who had only the welfare
+of his subordinates at heart and was against all military actions. His favorite pastime
+was to travel through the land, on foot, to visit each village and town. He visited
+each school to convince himself o the capability of the teachers and the progress of
+the students. He walked each street and lane and talked with all he met, regardless
+if they were rich or poor, noble or common.
+
+His successor, Duke Leopold Friedrich, was again the opposite. He was people shy,
+did not care about the government, left everything to his advisors, who exploited the
+land the citizens in the most shameless way. His only passion was to hunt every day,
+to cross through the woods back and forth was the only hobby he had. No wonder
+then, that in the year 48 the exploited people welcomed the Revolution.
+
+Ss vil, | want to tell about a princess from Anhalt, who was meant to play a big role in
+world history. She was selected to be the wife of the Russian Emperor Paul, and
+when he died, he was a very unimportant human moron, she became Emperor of
+Russia under the name Katharina Il. World history teaches us that she enlarged the
+Russian State quite a lot and broadened its borders and reached the highest step on
+the ladder to power. Therefore, she was called ""Katharina the Great"". The famous
+historian, Johannes von Mueller, says about her: She was great, if greatness could",3.8816559314727783,images/IMG_8480.jpg,False,,,,,,
+trocr,0 0,0.44113707542419434,images/IMG_8480.jpg,False,microsoft/trocr-base-handwritten,,,,,
+pytesseract_gpt5,"Would you like this proofread into clear, idiomatic English? Here is a polished version of your passage:
+
+He had relatives who were very proud of their ancestry, yet he fell in love with a common girl, the daughter of a pharmacist, whose name was Anna Foehsin. He then married her against all advice, made her a reigning princess, lived with her happily for a long time, and ensured there was plenty of offspring. He would stop at nothing to possess her; he even stabbed her alleged lover, whom he once found kneeling before her. An ordinary mortal would have been punished as a murderer, but since he claimed to rule by the grace of God, he got away with it.
+
+More of his character is shown by the following: Once, returning victorious from a war as a field commander in the Austrian army, he was welcomed by the people of a southern city with a festive march that he liked so much he had it played on every suitable occasion. He wanted to hear nothing else anymore—only the so‑called “Dessauer March.” Yes, even in church, when the whole congregation sang hymns, he would bellow, in his terrible, bear‑like voice, his favorite march, for which a genius later wrote the following words:
+
+This is how we live!
+This is how we live!
+This is how we live each day!
+With the finest drinking companions!
+In the morning with brandy,
+At noon with beer,
+In the evening with the virgins in their bedroom!
+
+Even on his deathbed they had to play this melody for him, and he belted out the words along with it until his last breath.
+
+His successor, Franz—called Father Franz by all his subjects—was, by contrast, a rather frugal, people‑loving prince who cared only for his subjects’ welfare and opposed all military ventures. His favorite pastime was to travel the land on foot, visiting every village and town. He visited each school to satisfy himself of the teachers’ competence and the students’ progress. He walked every street and lane and spoke with everyone he met, whether rich or poor, noble or common.
+
+His successor, Duke Leopold Friedrich, was again the opposite. He was shy of people and indifferent to governance, leaving everything to his advisers, who exploited the land and its citizens in the most shameless way. His only passion was hunting; tramping through the woods day after day was his sole hobby. No wonder, then, that in 1848 the exploited people welcomed the Revolution.
+
+I also want to tell of a princess from Anhalt who was destined to play a major role in world history. She was chosen to be the wife of the Russian emperor, and when he died—a rather insignificant man—she became Empress of Russia under the name Catherine II. History teaches us that she greatly enlarged the Russian state and extended its borders, rising to the very pinnacle of power. Hence she was called “Catherine the Great.” The famous historian Johannes von Müller says of her: “She was great, if greatness could …”
+
+Notes on key fixes:
+- Corrected grammar, idiom, and typos (e.g., hen > then; offsprings > offspring; bear voice > bear‑like voice; o > of; advisers; 1848).
+- Smoothed sentences and transitions; clarified subjects and pronouns.
+- Standardized titles and names (e.g., Catherine II).
+- The final quotation is incomplete in your text; if you have the rest, I can finish it.
+- Historical note (optional): Catherine the Great married Peter (later Peter III), not Paul; if you want strict historical accuracy reflected, I can adjust that line.
+
+If you prefer a lighter touch that preserves more of the original phrasing, or a more formal register, tell me your preference.",63.37491226196289,images/IMG_8480.jpg,False,,3.8911941051483154,59.483718156814575,768.0,893.0,0.009890000000000001
+trocr_gpt5,0 0,27.86822199821472,images/IMG_8480.jpg,False,microsoft/trocr-base-handwritten,0.46357297897338867,27.404649019241333,0.0,0.0,0.0
+pytesseract,"
+
+0€ thought of
+
+without any morale value. He probably means all her love affairs,
+fe)
+
+ecause when she saw a man whom she liked, he had to be at her will or else it
+would have cost him his head.
+
+ook nt close the characterization of some of the princes of Anhalt, now we will
+places to med at the causes which led to sucha general people uprising and in many
+@ bloody revolution. In the year 1847 all food in Germany was very,
+very expensive. A bushel of rye cost five Thalers, a price which was unattainable,
+because alf wages were so low and all earnings so low, as to where the mass of the
+People had to go hungry, while the officials lived high on the hog. In the spring of the
+same year, | had to go to work, together with several of our journeymen, ata mill for
+fourteen weeks. The milf was called Amts Mill, located near the city of Zerbst.
+There, we did not feel anything of the expensive times, we had plenty to eat, and
+when we were finished there, we went to Jochheim, a forestry located near the Elbe
+river, about three hours from Zerbst. The forester’s name was Ganzer and his ranger,
+@ unique individual first class, was called Fritz Otto. As good as life was at the mill,
+at the forestry we lived like masters. Here is the menu: early, six o‘clock, coffee,
+Sugar, milk, butter and hard rolls in masses. At eight o'clock breakfast, bread, butter,
+coffee, ham, meat and beer, and for master and journeymen brandy too. /, as an
+apprentice, did not get any brandy. At eleven thirty was lunch. Soup, vegetables,
+meat, roast, salad, bread, beer and brandy. At two o'clock, coffee, sugar, butter and
+hard rolls. At four o'clock was afternoon snack. Bread, butter, wurst and such, beer
+and brandy. At six thirty was dinner; again roast, bread, butter, cheese, meat, beer
+and brandy and at each meal everything was available in masses. See! such was the
+live of the officials. At this site, the poor workmen had their mouths and noses wide
+open. No wonder that unhappiness reigned all through the land and the question
+arose. Aren't we commoners and workers human beings too, are we only here to
+carry the load and pay taxes? The old forester Ganzer and his wife were the most
+deserving people in the world. She, the forester’s wife, always asked us to go into
+the garden and to pick for ourselves there berries, fruit and grapes as much as we
+liked, there was plenty of all of these things there, so we did not have to go hungry.
+The forester was a very friendly and entertaining man and each evening, when he was
+not absent, all people who lived in the house and in the neighborhood gathered
+
+outside.
+
+‘lr. Forester sat in the middle, everyone listened with attention. Then he finally
+began. Now / have to tell you a story, you have probably never heard one like it in
+your entire life, a story of the poisonous tree on the island Celebes and he elaborated
+long and wide about the terrible consequences the fumes of this poisonous tree had.
+The birds fell as corpses dead from the air; wild animals, which roamed near the
+poisonous tree, collapsed dead and the people, who dared to get close to it because
+of ignorance, also had to die and this way, during the course of many years, sO many
+corpses had gathered near the tree, so that the resulting poisonous smell due to the
+decomposition of the corpses made it impossible for any living creature to live on the
+island. And as long as we were there, he told this same story every evening as if it
+was news and everybody listened with suspense as if they had never heard it in their
+
+life before and exclamations of amazement and of surprise were loudly heard. After",4.264004230499268,images/IMG_8481.jpg,False,,,,,,
+trocr,a member of the House of Representatives,1.0040388107299805,images/IMG_8481.jpg,False,microsoft/trocr-base-handwritten,,,,,
+pytesseract_gpt5,"Here is a cleaned and corrected version of your passage:
+
+Of no moral value. He probably means all her love affairs, because when she saw a man she liked, he had to be at her will, or it would have cost him his head.
+
+Now that we have concluded the characterization of some of the princes of Anhalt, we will look at the causes that led to such a general popular uprising and, in many places, a bloody revolution. In 1847 all food in Germany was very, very expensive. A bushel of rye cost five thalers, a price that was unattainable because wages and earnings were so low that the masses had to go hungry, while the officials lived high on the hog. In the spring of the same year, I had to go to work, together with several of our journeymen, at a mill for fourteen weeks. The mill was called Amts Mill, located near the city of Zerbst. There we did not feel the effects of the hard times; we had plenty to eat. When we finished there, we went to Jochheim, a forest district near the Elbe River, about three hours from Zerbst. The forester’s name was Ganzer, and his ranger, a unique, first-rate individual, was called Fritz Otto. As good as life was at the mill, at the forestry we lived like masters. Here was the menu: at six o’clock, coffee, sugar, milk, butter, and hard rolls in abundance. At eight o’clock, breakfast: bread, butter, coffee, ham, meat, and beer, and for the master and journeymen, brandy too. I, as an apprentice, did not get any brandy. At eleven-thirty was lunch: soup, vegetables, meat, roast, salad, bread, beer, and brandy. At two o’clock, coffee, sugar, butter, and hard rolls. At four o’clock was the afternoon snack: bread, butter, sausage and the like, beer, and brandy. At six-thirty was dinner: again roast, bread, butter, cheese, meat, beer, and brandy—and at each meal everything was available in abundance. See! Such was the life of the officials. Meanwhile, the poor workmen looked on with their mouths and noses wide open. No wonder that unhappiness reigned throughout the land and the question arose: Aren’t we commoners and workers human beings too? Are we only here to carry the load and pay taxes?
+
+The old forester Ganzer and his wife were the most deserving people in the world. She always invited us to go into the garden and pick berries, fruit, and grapes as much as we liked; there was plenty of everything, so we did not go hungry. The forester was a very friendly and entertaining man, and each evening, when he was not away, all the people who lived in the house and in the neighborhood gathered outside. Mr. Forester sat in the middle, and everyone listened attentively. Then he began: “Now I have to tell you a story. You have probably never heard one like it in your entire life—a story of the poisonous tree on the island of Celebes.” He elaborated at length about the terrible effects of the fumes of this poisonous tree. Birds dropped dead from the air; wild animals that roamed near the tree collapsed dead; and people who, out of ignorance, dared to get close to it also had to die. In this way, over many years, so many corpses had gathered near the tree that the resulting poisonous stench from their decomposition made it impossible for any living creature to remain on the island. And the whole time we were there, he told this same story every evening as if it were news, and everybody listened in suspense as if they had never heard it before, with loud exclamations of amazement and surprise. After … 
+
+If you’d like a more literal edit (fewer stylistic changes) or notes on specific word choices, I can provide that too.",137.88589692115784,images/IMG_8481.jpg,False,,4.28172492980957,133.60417199134827,906.0,896.0,0.010092499999999999
+trocr_gpt5,a member of the House of Representatives,6.737890243530273,images/IMG_8481.jpg,False,microsoft/trocr-base-handwritten,1.0844841003417969,5.653406143188477,10.0,10.0,0.00011250000000000001
+pytesseract,"
+
+the story was told, the congregation broke up slowly and what was the most unusual
+(hiNgs was, that in my opinion in those days, everyone left in pairs. The Forester with
+his Mrs. Forester, the hunter, “Otten Fritze” by name, with Aunt Gertchen, our master
+together with the already aging Aunt Minna, the journeyman with the female cook,
+the servant with the chambermaid and this way also the neighbors, all left paired up.
+And only |, the apprentice, stayed seated alone with the bab ysitter, we exchanged our
+amazements in regard to what made these pairs leave together, one pair going in this
+direction, one pair in the other direction and all had chosen densely grown over spots.
+| made a suggestion to her that we both should look for a spot ourselves, but without
+success, she did not want to and so we just stayed sitting alone together and spent
+the time in joyful discussions until it was time to go to bed. | really found life in the
+country very relaxing, social, we all liked one another, and the Poet is definitely right,
+when he sings: ""Girl from the country, how good you truly are! How the color of
+virginity suits you so well!"" And so forth.
+
+Now, everything in the world has an end, and so our time also ended and we had to
+return to the city, had to say good bye to all the nice people, the beautiful deer roasts
+and carps, and the masses and fill and excess of everything, and the life filled with
+hunger began again for the master.
+
+Fall of 1847 had arrived. No one, namely among the common people, had an idea
+that such important political events prepared themselves, and there even were several
+indications, which pointed to something very unusual. For example, in our city Zerbst,
+stood since God knows when a huge sandstone sculpture which was to portrait the
+Knight Roland. Helmet on his head, the sword in his fist. As | was taught, he is
+supposed to be standing in seven German Cities and is supposed to mean, that
+wherever such a Roland figure is standing, there is a high court, an assize in
+existence. The City Council of Zerbst had decided, since the down was very rich, to
+have a very artistic sentry-box built for Knight Roland and gave the order to execute
+this plan to a builder named Wilhelm Raedike. He was a very rich and well to do man.
+He employed many craftsmen and sculpturers, money was not held tight, only to build
+a beautiful monument. As the enclosure fell, everything stood there in mighty beauty.
+Everyone was amazed, was jubilant and happy about this very beautiful and expensive
+building, but yet a murmur went through the crowd, as if something illegal had
+happened, but no one knew what it was. Then finally it was brought to the surface.
+A joker, who must have been informed in detail, had written a sarcastic poem and had
+posted and distributed the same in the darkness of night, without anyone knowing
+
+aboutit. This poem brought forth a storm of surprise, applause, but also upset. It
+went like this:
+
+“Many hundred years you have stood there
+You grey man of stone,
+You saw as the waves of storm
+passed you by
+and also the sunshine.
+
+~ You stood unsullen,
+No evil attacked you,",4.017457962036133,images/IMG_8482.jpg,False,,,,,,
+trocr,0 0,0.5412979125976562,images/IMG_8482.jpg,False,microsoft/trocr-base-handwritten,,,,,
+pytesseract_gpt5,"Would you like this polished for natural, modern English? Here’s a cleaned-up version that preserves the tone and details:
+
+After the story was told, the company broke up slowly, and what struck me as most unusual in those days was that everyone left in pairs. The forester with Mrs. Forester; the hunter, “Otten Fritze” by name, with Aunt Gertchen; our master with the already aging Aunt Minna; the journeyman with the cook; the manservant with the chambermaid; and so it was with the neighbors too—everyone paired off. Only I, the apprentice, stayed sitting alone with the nursemaid. We shared our astonishment at what made these couples leave together—one pair going this way, another that way—and all of them choosing secluded, overgrown spots. I suggested we find a spot of our own, but she wouldn’t hear of it, so we simply stayed where we were and passed the time in cheerful conversation until it was time for bed. I truly found life in the country relaxing and sociable; we all liked one another, and the poet is surely right when he sings: “Girl from the country, how truly good you are! How well the color of virginity suits you!” And so on.
+
+Now, everything in the world has an end, and so our time ended as well. We had to return to the city—had to say goodbye to all the kind people, to the beautiful roasts of venison and the carp, to the abundance and plenty of everything—and for the master the hungry days began again.
+
+Autumn of 1847 had arrived. No one—at least among ordinary people—had any idea that important political events were in the making, though there were several signs pointing to something unusual. For example, in our city of Zerbst there had stood, since time immemorial, a huge sandstone figure meant to portray Knight Roland: a helmet on his head, a sword in his fist. As I was taught, he is said to stand in seven German cities and to signify that wherever such a Roland figure stands, a high court—an assize—exists. The city council of Zerbst had decided, since the town was very wealthy, to have a highly artistic sentry box built for Knight Roland, and they commissioned a builder named Wilhelm Raedike to carry out the plan. He was a very well-to-do man. He employed many craftsmen and sculptors; no expense was spared, all to create a beautiful monument. When the scaffolding came down, the whole stood there in majestic beauty. Everyone marveled, rejoiced, and took pride in this very beautiful and costly structure; yet a murmur went through the crowd, as if something improper had happened, though no one knew what it was. At last the reason came to light. A prankster, who must have been well informed, had written a scathing poem and posted and distributed it under cover of night, without anyone knowing about it. The poem provoked a storm of surprise and applause—but also offense. It went like this:
+
+“Many hundred years you have stood there,
+you gray man of stone;
+you saw the waves of storm
+pass you by,
+and also the sunshine.
+
+You stood untroubled;
+no evil assailed you,”
+
+Notes on key fixes:
+- Corrected typos and misread characters (I for |, things, babysitter → nursemaid, town for down, sculptors for sculpturers).
+- Smoothed idioms and collocations (broke up slowly; paired off; shared our astonishment; secluded, overgrown spots; abundance and plenty; in the making; no expense was spared; came to light).
+- Clarified period-appropriate terms (nursemaid fits the setting better than babysitter; venison roasts for deer roasts).
+- Improved sentence flow and punctuation, especially long sequences and appositives.
+- Kept historically specific terms (assize, Knight Roland) with brief clarification in context.
+- Standardized capitalization and names for consistency.
+
+If you’d prefer a line-by-line proofread that keeps more of the original phrasing, I can do that too.",90.65366721153259,images/IMG_8482.jpg,False,,4.020294904708862,86.63337230682373,784.0,957.0,0.010549999999999999
+trocr_gpt5,0 0,26.16894006729126,images/IMG_8482.jpg,False,microsoft/trocr-base-handwritten,0.5453429222106934,25.623597145080566,0.0,0.0,0.0
