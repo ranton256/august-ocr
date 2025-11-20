@@ -8,8 +8,8 @@ Previously, we removed DeepSeek-OCR from this project due to high memory require
 
 ## Memory Comparison
 
-- **Full DeepSeek-OCR**: ~24GB+ GPU memory required
-- **4-bit Quantized**: ~6-8GB GPU memory (can run on T4 GPU)
+- **Full DeepSeek-OCR**: 16-24GB GPU memory required (24GB preferred for production/higher resolution) ([DeepSeek OCR Guide](https://deepseeksguides.com/deepseek-ocr-guide/))
+- **4-bit Quantized**: 6-8GB GPU memory (can run on T4 GPU) ([DeepSeek OCR Guide](https://deepseeksguides.com/deepseek-ocr-guide/))
 
 ## Installation
 

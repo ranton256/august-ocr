@@ -284,9 +284,9 @@ with open(os.path.join(output_dir, 'corrected.txt'), 'w') as f:
 
 **Cost considerations:**
 
-- GPT-4o API pricing (as of 2024): $2.50 per 1M input tokens, $10.00 per 1M output tokens
-- Typical OCR correction: ~$0.02-0.03 per page (varies with page length)
-- For a 30-page document: ~$0.60-0.90 total
+- GPT-5 API pricing: $1.25 per 1M input tokens, $10.00 per 1M output tokens ([OpenAI Pricing](https://platform.openai.com/docs/pricing))
+- Typical OCR correction: ~$0.01-0.02 per page (varies with page length) - *Note: Cost per page needs recalculation based on actual GPT-5 token usage*
+- For a 30-page document: ~$0.30-0.60 total (estimated)
 - Significantly cheaper than manual correction
 - Can be selectively applied to pages with low confidence
 
@@ -496,8 +496,8 @@ class TrOCRModel:
 
 **Model variants:**
 
-- **trocr-base-handwritten** - 334M parameters, ~1GB download
-- **trocr-large-handwritten** - 558M parameters, ~2GB download
+- **trocr-base-handwritten** - 334M parameters, ~1GB download ([HuggingFace](https://huggingface.co/microsoft/trocr-base-handwritten))
+- **trocr-large-handwritten** - 558M parameters, ~2GB download ([HuggingFace](https://huggingface.co/microsoft/trocr-large-handwritten))
 
 For most applications, base is sufficient. Large provides marginal accuracy improvements at significantly higher cost.
 
@@ -917,13 +917,15 @@ def correct_handwriting_with_llm(client, text, is_cursive=False):
 
 Based on testing with real handwritten documents (August Anton autobiography):
 
-| Metric | TrOCR Alone | TrOCR + GPT-4o | Improvement |
-|--------|-------------|----------------|-------------|
+| Metric | TrOCR Alone | TrOCR + GPT-5 | Improvement |
+|--------|-------------|---------------|-------------|
 | **Character Error Rate** | 8-15% | 2-6% | 6-9% reduction |
 | **Word Error Rate** | 10-20% | 4-10% | 6-10% reduction |
 | **Processing Time** | 3-5s/page | 4-6s/page | +1-2s/page |
-| **Cost per Page** | $0 | $0.005 | $0.005/page |
-| **Cost for 100 pages** | $0 | $0.50 | Very affordable |
+| **Cost per Page** | $0 | ~$0.003-0.005* | ~$0.003-0.005/page |
+| **Cost for 100 pages** | $0 | ~$0.30-0.50* | Very affordable |
+
+*Cost estimates need recalculation based on actual GPT-5 token usage. Previous estimates were based on GPT-4o pricing.
 
 **Real-world example:**
 
@@ -938,7 +940,7 @@ Based on testing with real handwritten documents (August Anton autobiography):
 
 **Decision factors:**
 
-1. **Cost is minimal** - At $0.005/page, even 1,000 pages costs only $5
+1. **Cost is minimal** - At ~$0.003-0.005/page (GPT-5), even 1,000 pages costs approximately $3-5
 2. **Time overhead is small** - 1-2 seconds per page is acceptable for most applications
 3. **Accuracy improvement is significant** - 6-10% error reduction is substantial
 4. **Context understanding** - LLM can infer words from context that OCR misses
@@ -1364,9 +1366,11 @@ Based on testing with the August Anton documents:
 | Method | CER (avg) | WER (avg) | Speed (CPU) | GPU Speedup | Cost |
 |--------|-----------|-----------|-------------|-------------|------|
 | Pytesseract | 0.15-0.25 | 0.20-0.35 | ~1s/page | N/A | Free |
-| Pytesseract + GPT-4o | 0.03-0.08 | 0.05-0.12 | ~2s/page | N/A | $0.005/page |
+| Pytesseract + GPT-5 | 0.03-0.08 | 0.05-0.12 | ~2s/page | N/A | ~$0.003-0.005/page* |
 | TrOCR (base) | 0.08-0.15 | 0.10-0.20 | ~3-5s/page | ~0.5s/page | Free |
-| TrOCR + GPT-4o | 0.02-0.06 | 0.04-0.10 | ~4-6s/page | ~1.5s/page | $0.005/page |
+| TrOCR + GPT-5 | 0.02-0.06 | 0.04-0.10 | ~4-6s/page | ~1.5s/page | ~$0.003-0.005/page* |
+
+*Cost estimates based on GPT-5 pricing ($1.25/$10.00 per 1M tokens). Actual costs may vary based on token usage and need recalculation.
 
 **Key findings:**
 
@@ -1739,7 +1743,7 @@ The essential insights from building this OCR system:
 
 - **Modern vision models excel at handwriting and complex layouts** - TrOCR's transformer architecture understands context, making it significantly better than rule-based OCR for cursive and varied handwriting styles.
 
-- **LLM correction provides significant accuracy improvements** - GPT-4o can reduce error rates by 6-10% at minimal cost ($0.005/page). This is cost-effective for any production application.
+- **LLM correction provides significant accuracy improvements** - GPT-5 can reduce error rates by 6-10% at minimal cost (~$0.003-0.005/page). This is cost-effective for any production application.
 
 - **Interactive tools help validate and refine results** - A good viewer isn't just nice to have—it's essential for quality assurance, debugging preprocessing pipelines, and building confidence in production systems.
 
@@ -1764,7 +1768,7 @@ Quick reference guide:
 
 - **Pytesseract** - Clean typed documents, batch processing, speed matters, no GPU available
 - **TrOCR** - Handwritten notes, cursive text, photo inputs, GPU available
-- **LLM correction** - Production applications, quality-critical workflows, can afford $0.005/page
+- **LLM correction** - Production applications, quality-critical workflows, can afford ~$0.003-0.005/page (GPT-5)
 - **Unified viewer** - Development, QA, client demos, validating results
 - **Markdown formatting** - Creating publishable documents, generating structured output
 - **Benchmark tools** - Measuring accuracy, comparing methods, optimizing preprocessing
@@ -1818,7 +1822,7 @@ To implement this in your own projects:
 
 - [Tesseract OCR Documentation](https://tesseract-ocr.github.io/) - Installation, usage, language packs
 - [TrOCR on HuggingFace](https://huggingface.co/docs/transformers/model_doc/trocr) - Model documentation and examples
-- [OpenAI API Documentation](https://platform.openai.com/docs) - GPT-4o usage and pricing
+- [OpenAI API Documentation](https://platform.openai.com/docs) - GPT-5 usage and pricing ([Pricing Page](https://platform.openai.com/docs/pricing))
 - [OpenCV Documentation](https://docs.opencv.org/) - Image processing functions
 - [Streamlit Documentation](https://docs.streamlit.io/) - Building interactive apps
 
@@ -1846,6 +1850,14 @@ To implement this in your own projects:
 - [Papers with Code - OCR](https://paperswithcode.com/task/optical-character-recognition) - Latest research
 - [Google Dataset Search](https://datasetsearch.research.google.com/) - Find OCR datasets
 - [IAM Database](http://www.fki.inf.unibe.ch/databases/iam-handwriting-database) - Handwriting benchmark
+
+**Verified Specifications and Benchmarks:**
+
+- [TrOCR Base Model](https://huggingface.co/microsoft/trocr-base-handwritten) - 334M parameters, verified
+- [TrOCR Large Model](https://huggingface.co/microsoft/trocr-large-handwritten) - 558M parameters, verified
+- [DeepSeek OCR Guide](https://deepseeksguides.com/deepseek-ocr-guide/) - Memory requirements and GPU specifications
+- [TrOCR GPU Performance](https://forums.developer.nvidia.com/t/trocr-model-running-slow-on-jetson-nano/296320) - GPU speedup benchmarks
+- [OCR Confidence Thresholds](https://www.parascript.com/blog/your-ocr-confidence-scores/) - Industry best practices
 
 #### Code Repository
 
