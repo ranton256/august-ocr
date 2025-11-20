@@ -5,3 +5,4 @@ env/
 __pycache__/
 garbage/
 .claude/settings.local.json
+.vscode/settings.json
