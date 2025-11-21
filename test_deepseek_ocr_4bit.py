@@ -186,16 +186,28 @@ class DeepSeekOCR4Bit:
             print(model_output)
 
             # Extract text from the stdout output
-            # For grounding mode, extract just the text content from the tags
-            # Format: <|ref|>text<|/ref|><|det|>[[coords]]<|/det|>
-            extracted_text = model_output
-            if "<|ref|>" in extracted_text and "<|/ref|>" in extracted_text:
-                import re
-                # Extract all text between <|ref|> and <|/ref|> tags
-                text_segments = re.findall(r'<\|ref\|>(.*?)<\|/ref\|>', extracted_text, re.DOTALL)
-                # Filter out non-text segments (like "image", "P", etc.)
-                text_segments = [seg.strip() for seg in text_segments if seg.strip() and seg.strip() not in ['image', 'P', '0', 'text']]
-                extracted_text = '\n'.join(text_segments)
+            # The model saves results to .mmd file, so read that instead of parsing stdout
+            # The stdout contains lots of markup tags that are hard to parse reliably
+            extracted_text = model_output.strip()
+
+            # Try to read the .mmd file that the model creates
+            image_basename = Path(image_path).stem
+            mmd_file = os.path.join(output_path, "result.mmd")
+
+            if os.path.exists(mmd_file):
+                try:
+                    with open(mmd_file, 'r', encoding='utf-8') as f:
+                        extracted_text = f.read().strip()
+
+                    # Save a copy with the image basename to prevent overwriting
+                    individual_mmd = os.path.join(output_path, f"{image_basename}_result.mmd")
+                    with open(individual_mmd, 'w', encoding='utf-8') as f:
+                        f.write(extracted_text)
+
+                except Exception as e:
+                    print(f"Warning: Could not read .mmd file: {e}")
+                    # Fall back to stdout parsing if .mmd file read fails
+                    pass
 
             return {
                 'text': extracted_text,
@@ -362,11 +374,23 @@ def test_batch_images(
     with open(results_file, 'w') as f:
         json.dump(results, f, indent=2)
 
+    # Save consolidated extracted text
+    extracted_text_file = os.path.join(output_dir, "all_extracted_text.txt")
+    with open(extracted_text_file, 'w', encoding='utf-8') as f:
+        for result in results:
+            if 'text' in result and result['text']:
+                f.write(f"\n{'=' * 80}\n")
+                f.write(f"Image: {result['image_path']}\n")
+                f.write(f"{'=' * 80}\n")
+                f.write(result['text'] + '\n')
+
     print(f"\n{'='*80}")
     print(f"Batch processing complete!")
     print(f"{'='*80}")
     print(f"Processed {len(results)} images")
-    print(f"Results saved to: {results_file}")
+    print(f"Results saved to:")
+    print(f"  - JSON: {results_file}")
+    print(f"  - Text: {extracted_text_file}")
 
     if torch.cuda.is_available():
         print(f"\nFinal GPU Memory allocated: {torch.cuda.memory_allocated() / 1024**3:.2f} GB")
