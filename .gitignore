@@ -6,3 +6,10 @@ __pycache__/
 garbage/
 .claude/settings.local.json
 .vscode/settings.json
+
+# Handwriting OCR output directories
+handwriting/output_*/
+output_deepseek_4bit/
+output_trocr_comparison/
+output_trocr_comparison2/
+output_trocr_myqueue/

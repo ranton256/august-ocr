@@ -1,0 +1,2 @@
+
+docker run -it -v /home/ranton/projects/august-ocr:/august-ocr python:3.14 /bin/bash
