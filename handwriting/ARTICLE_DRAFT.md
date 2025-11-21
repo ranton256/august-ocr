@@ -589,3 +589,13 @@ All code examples shown in this article are available in this repository:
 - `benchmark.py` - Performance benchmarking tools (in parent directory)
 
 For setup instructions, see [README.md](README.md).
+
+
+
+## TODO:
+
+things to add in appropriate section
+
+
+
+- [DeepSeek OCR Guide](https://deepseeksguides.com/deepseek-ocr-guide/) - Memory requirements and GPU specifications

@@ -1339,10 +1339,6 @@ To implement this in your own projects:
 
 **Verified Specifications and Benchmarks:**
 
-- [TrOCR Base Model](https://huggingface.co/microsoft/trocr-base-handwritten) - 334M parameters, verified
-- [TrOCR Large Model](https://huggingface.co/microsoft/trocr-large-handwritten) - 558M parameters, verified
-- [DeepSeek OCR Guide](https://deepseeksguides.com/deepseek-ocr-guide/) - Memory requirements and GPU specifications
-- [TrOCR GPU Performance](https://forums.developer.nvidia.com/t/trocr-model-running-slow-on-jetson-nano/296320) - GPU speedup benchmarks
 - [OCR Confidence Thresholds](https://www.parascript.com/blog/your-ocr-confidence-scores/) - Industry best practices
 
 #### Code Repository
