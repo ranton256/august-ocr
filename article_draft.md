@@ -1739,7 +1739,7 @@ The essential insights from building this OCR system:
 
 - **No single OCR solution fits all use cases** - Traditional OCR (Pytesseract) excels at typed documents, while transformer models (TrOCR) are superior for handwriting. Choose based on your input type.
 
-- **Preprocessing is critical for traditional OCR** - Image quality directly impacts accuracy. Grayscale conversion, noise reduction, and thresholding can improve results by 10-20%.
+- **Preprocessing impact varies by document quality** - Image quality directly impacts accuracy. For clean typed documents, preprocessing provides minimal benefit. For noisy, scanned, or aged documents, preprocessing (grayscale conversion, noise reduction, thresholding) can provide more significant improvements.
 
 - **Modern vision models excel at handwriting and complex layouts** - TrOCR's transformer architecture understands context, making it significantly better than rule-based OCR for cursive and varied handwriting styles.
 
