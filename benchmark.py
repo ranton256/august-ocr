@@ -193,6 +193,76 @@ class OCRBenchmark:
             'processing_time': processing_time
         }
 
+    def benchmark_pytesseract_no_preprocess(self, image_path: str) -> Dict:
+        """
+        Benchmark pytesseract on an image WITHOUT preprocessing but using same region extraction
+        
+        This is used to evaluate the impact of preprocessing on OCR accuracy.
+        Uses the same region-based extraction as the preprocessed version.
+
+        Args:
+            image_path: Path to image
+
+        Returns:
+            Results dictionary
+        """
+        if not PYTESSERACT_AVAILABLE:
+            return {"error": "pytesseract not available"}
+
+        import cv2
+        import pytesseract
+
+        # Load image
+        img = cv2.imread(image_path, cv2.IMREAD_COLOR)
+        if img is None:
+            return {"error": f"Could not load image: {image_path}"}
+
+        # Convert BGR to RGB
+        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        
+        # Convert to grayscale for region detection (but don't apply full preprocessing)
+        img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2GRAY)
+
+        start_time = time.time()
+        
+        # Use same region extraction approach but without thresholding/noise removal
+        rect_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (50, 40))
+        dilation = cv2.dilate(img_gray, rect_kernel, iterations=1)
+        contours, hierarchy = cv2.findContours(dilation, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        
+        cnt_list = []
+        for cnt in contours:
+            x, y, w, h = cv2.boundingRect(cnt)
+            cropped = img_rgb[y:y + h, x:x + w]  # Use original RGB image for OCR
+            
+            text = pytesseract.image_to_string(cropped)
+            text = text.strip()
+            if text:
+                cnt_list.append((x, y, text))
+        
+        # Sort by y then x position
+        sorted_list = sorted(cnt_list, key=lambda c: (c[1], c[0]))
+        
+        # Combine text
+        all_text = []
+        last_y = 0
+        for x, y, txt in sorted_list:
+            div = "\n"
+            if y - last_y > 1:
+                div = "\n\n"
+            all_text.append(div)
+            all_text.append(txt)
+            last_y = y
+        
+        extracted = "".join(all_text)
+        processing_time = time.time() - start_time
+
+        return {
+            'method': 'pytesseract_no_preprocess',
+            'text': extracted,
+            'processing_time': processing_time
+        }
+
     def benchmark_trocr(
         self,
         image_path: str,
@@ -351,6 +421,8 @@ class OCRBenchmark:
         for method in methods:
             if method == 'pytesseract':
                 result = self.benchmark_pytesseract(image_path)
+            elif method == 'pytesseract_no_preprocess':
+                result = self.benchmark_pytesseract_no_preprocess(image_path)
             elif method == 'trocr':
                 result = self.benchmark_trocr(image_path, trocr_model)
             elif method == 'pytesseract_gpt5':
@@ -577,7 +649,7 @@ def main():
         type=str,
         nargs='+',
         default=['pytesseract', 'trocr'],
-        choices=['pytesseract', 'trocr', 'pytesseract_gpt5', 'trocr_gpt5'],
+        choices=['pytesseract', 'pytesseract_no_preprocess', 'trocr', 'pytesseract_gpt5', 'trocr_gpt5'],
         help='OCR methods to benchmark'
     )
     parser.add_argument(

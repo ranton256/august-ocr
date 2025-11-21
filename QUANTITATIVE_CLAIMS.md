@@ -149,9 +149,10 @@ These claims need to be measured on your specific data, hardware, and use case. 
 
 **Preprocessing Improvement (Line 1738, article_draft.md):**
 
-- Preprocessing can improve results by 10-20%
+- Preprocessing impact varies by document quality
 - **Action**: Run A/B test with/without preprocessing on your dataset
 - **Test Method**: Modify preprocessing pipeline and compare CER/WER
+- **Note**: Evaluation on 5 clean typed documents showed minimal improvement (0.07-0.25pp), not 10-20%
 
 ### LLM Correction Impact on Your Data
 
