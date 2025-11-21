@@ -1,39 +1,29 @@
-# Python OCR using Pytesseract, Pillow, and openCV
+# Digitizing Historical Documents: OCR with PyTesseract and AI Correction
 
 ## Overview
 
-This project demonstrates two approaches to OCR (Optical Character Recognition):
+This project demonstrates a complete pipeline for digitizing historical printed documents using traditional OCR combined with modern AI correction. The approach uses [PyTesseract](https://github.com/h/pytesseract), [OpenCV](https://opencv.org/), and OpenAI's [GPT-5](https://openai.com/index/hello-gpt-5/) to convert scanned pages into accurate, searchable text.
 
-1. **Document OCR**: Extract text from scanned documents using [PyTesseract](https://github.com/h/pytesseract), [Pillow](https://python-pillow.org/), and [opencv-python](https://github.com/opencv/opencv-python)
+**What makes this project unique:**
 
-Both approaches use OpenAI's [GPT-5](https://openai.com/index/hello-gpt-5/) to correct OCR errors and improve accuracy.
+- **Real-world example** - Digitizes 30 pages of my great-great-grandfather's autobiography
+- **Complete pipeline** - From raw scans to formatted markdown/PDF output
+- **AI-powered correction** - Uses GPT-5 to fix OCR errors while preserving original meaning
+- **Benchmarked results** - Measured accuracy improvements with preprocessing and correction
+- **Production-ready** - Batch processing, interactive viewer, and comprehensive documentation
 
 The project includes:
-- Image preprocessing pipelines optimized for each use case
-- Batch processing capabilities
-- Interactive [Streamlit](https://streamlit.io) viewer for comparing results
-- Benchmarking tools for measuring accuracy and performance
-- **Tutorial outline** for building similar OCR systems (see [TUTORIAL_OUTLINE.md](TUTORIAL_OUTLINE.md))
+- Image preprocessing pipeline optimized for aged documents
+- Batch processing capabilities for multi-page documents
+- Interactive [Streamlit](https://streamlit.io) viewer for result validation
+- Benchmarking tools for measuring accuracy improvements
+- Complete tutorial for building similar systems
 
-The process is visualized with a Streamlit app that shows the original image, preprocessed image, extracted text, and corrected text for each page.
+## The August Anton Project
 
-## Tutorial
+This OCR pipeline was developed to digitize a 30-page autobiography written by my paternal great-great-grandfather, August Anton, sometime before his death in 1911. The document chronicles his fascinating life, including participation in the 1848 German revolution, immigration to America, and establishing a successful carpentry business in Birmingham, Alabama.
 
-This repository serves as a comprehensive tutorial for building OCR systems. See [TUTORIAL_OUTLINE.md](TUTORIAL_OUTLINE.md) for a detailed guide covering:
-- Traditional document OCR with pytesseract
-- Handwriting recognition with Microsoft's TrOCR (transformer-based architecture)
-- AI-powered error correction
-- Performance benchmarking
-- Production deployment considerations
-
-## Use Cases
-
-| Feature | Document OCR | Handwriting OCR |
-|---------|--------------|----------------|
-| Input | Scanned documents, PDFs | Photos of handwritten notes |
-| Best for | Typed/printed text | Cursive or printed handwriting |
-| Challenges | Aged paper, fading | Varied angles, lighting |
-| Script | `text_from_pdfs.py` | `handwriting_ocr.py` |
+The challenge: Convert 30 pages of photocopied, aged printed text into searchable, accurate digital form while preserving the original voice and content.
 
 ## License
 
@@ -86,7 +76,7 @@ echo "OPENAI_API_KEY=your-key-here" > .env
 
 ## Usage
 
-### Document OCR (Pytesseract)
+### Basic OCR Pipeline
 
 Process scanned documents or PDFs:
 
@@ -94,58 +84,51 @@ Process scanned documents or PDFs:
 python text_from_pdfs.py [--max N]
 ```
 
+The script processes images listed in `input_file_list.txt` and performs:
+1. Image preprocessing (grayscale → noise reduction → thresholding)
+2. Region-based text extraction with PyTesseract
+3. GPT-5 error correction
+4. Output generation
+
 Results are saved to:
-- `output/results.csv` - Processing results
+- `output/results.csv` - Processing results with all stages
 - `output/extracted.txt` - Raw OCR text
-- `output/corrected.txt` - LLM-corrected text
-
-### Handwriting OCR (TrOCR)
-
-Process photos of handwritten notes using Microsoft's TrOCR:
-
-```bash
-# Create input directory and add your handwritten note photos
-mkdir handwriting_images
-# Add your photos to handwriting_images/
-
-# Run handwriting OCR
-python handwriting_ocr.py --input handwriting_images/
-
-# Optional: with perspective correction and LLM correction
-python handwriting_ocr.py --input handwriting_images/ --perspective-correction --llm-correction
-```
-
-Results are saved to:
-- `output/handwriting_results.csv` - Processing results
-- `output/extracted_handwriting.txt` - Raw OCR text
-- `output/corrected_handwriting.txt` - Corrected text
+- `output/corrected.txt` - AI-corrected text
+- `output/*_proc.jpg` - Preprocessed images for inspection
 
 ### Benchmarking
 
-Compare OCR methods and measure accuracy:
+Measure accuracy and compare preprocessing approaches:
 
 ```bash
-# Create ground truth template
-python benchmark.py --input handwriting_images/ --create-template
+# Create ground truth template files
+python benchmark.py --input images/ --create-template
 
-# Edit ground_truth.json to add correct text for each image
+# Edit ground_truth/*_ref.txt files with correct text for each image
 
-# Run benchmark
-python benchmark.py --input handwriting_images/ --ground-truth ground_truth.json --methods pytesseract trocr
+# Run benchmark comparing preprocessing approaches
+python benchmark.py --input images/ \
+  --methods pytesseract pytesseract_no_preprocess pytesseract_gpt5
 ```
+
+The benchmark measures:
+- **Character Error Rate (CER)** - Percentage of characters incorrectly recognized
+- **Word Error Rate (WER)** - Percentage of words with errors
+- **Processing time** - Seconds per page
 
 ### Interactive Viewer
 
-Launch the Streamlit app to view results:
+Launch the Streamlit app to view and validate results:
 
 ```bash
 streamlit run viewer_app.py
 ```
 
 The app allows you to:
-- Switch between document OCR and handwriting OCR results
-- Compare original, preprocessed, extracted, and corrected versions
+- View original and preprocessed images side-by-side
+- Compare raw OCR output with AI-corrected text
 - Navigate through pages with buttons or slider
+- Validate results before final export
 
 The draft, combined version including some hand edits is in [august_anton.md](august_anton.md).
 
@@ -163,38 +146,30 @@ A PDF version formatted in LaTex using overleaf to adjust the one generated by p
 
 ## Academic Citations
 
-This project builds on several important research works and open-source tools:
-
-### TrOCR
-
-Li, M., Lv, T., Chen, J., Cui, L., Lu, Y., Florencio, D., ... & Wei, F. (2023). **TrOCR: Transformer-based Optical Character Recognition with Pre-trained Models**. *Proceedings of the AAAI Conference on Artificial Intelligence, 37*(11), 13094-13102. [https://arxiv.org/abs/2109.10282](https://arxiv.org/abs/2109.10282)
-
-> TrOCR is a transformer-based OCR model that leverages pre-trained image and text transformers for state-of-the-art text recognition. It uses an encoder-decoder architecture and achieves excellent results on handwritten and printed text.
-
-### GPT-4o
-
-OpenAI. (2024). **GPT-4o System Card**. *arXiv preprint arXiv:2410.21276*. [https://arxiv.org/abs/2410.21276](https://arxiv.org/abs/2410.21276)
-
-> GPT-4o is used in this project for intelligent OCR error correction, leveraging its language understanding to fix common OCR mistakes while preserving the original meaning.
+This project builds on important research works and open-source tools:
 
 ### Tesseract OCR
 
 Smith, R. (2007). **An Overview of the Tesseract OCR Engine**. In *Proceedings of the Ninth International Conference on Document Analysis and Recognition (ICDAR '07)*, pp. 629-633. IEEE Computer Society.
 
-> Tesseract is the foundational open-source OCR engine used for traditional document text extraction in this project.
+> Tesseract is the foundational open-source OCR engine used for document text extraction in this project. Originally developed by HP in the 1980s, it was open-sourced by Google and remains one of the most accurate OCR engines for printed text.
+
+### GPT-4o
+
+OpenAI. (2024). **GPT-4o System Card**. *arXiv preprint arXiv:2410.21276*. [https://arxiv.org/abs/2410.21276](https://arxiv.org/abs/2410.21276)
+
+> GPT-4o (via GPT-5 API) is used in this project for intelligent OCR error correction, leveraging its language understanding to fix common OCR mistakes while preserving the original meaning and style.
 
 ### BibTeX Entries
 
 ```bibtex
-@inproceedings{li2023trocr,
-  title={TrOCR: Transformer-based Optical Character Recognition with Pre-trained Models},
-  author={Li, Minghao and Lv, Tengchao and Chen, Jingye and Cui, Lei and Lu, Yijuan and Florencio, Dinei and Zhang, Cha and Li, Zhoujun and Wei, Furu},
-  booktitle={Proceedings of the AAAI Conference on Artificial Intelligence},
-  volume={37},
-  number={11},
-  pages={13094--13102},
-  year={2023},
-  url={https://arxiv.org/abs/2109.10282}
+@inproceedings{smith2007tesseract,
+  author = {Ray Smith},
+  title = {An Overview of the Tesseract OCR Engine},
+  booktitle = {ICDAR '07: Proceedings of the Ninth International Conference on Document Analysis and Recognition},
+  year = {2007},
+  pages = {629--633},
+  publisher = {IEEE Computer Society}
 }
 
 @article{openai2024gpt4o,
@@ -204,24 +179,16 @@ Smith, R. (2007). **An Overview of the Tesseract OCR Engine**. In *Proceedings o
   year={2024},
   url={https://arxiv.org/abs/2410.21276}
 }
-
-@inproceedings{smith2007tesseract,
-  author = {Ray Smith},
-  title = {An Overview of the Tesseract OCR Engine},
-  booktitle = {ICDAR '07: Proceedings of the Ninth International Conference on Document Analysis and Recognition},
-  year = {2007},
-  pages = {629--633},
-  publisher = {IEEE Computer Society}
-}
 ```
 
 ### Key Libraries and Tools
 
-- **OpenCV** - Computer vision and image preprocessing: [https://opencv.org/](https://opencv.org/)
+- **Tesseract OCR** - Open-source OCR engine: [https://github.com/tesseract-ocr/tesseract](https://github.com/tesseract-ocr/tesseract)
 - **PyTesseract** - Python wrapper for Tesseract: [https://github.com/h/pytesseract](https://github.com/h/pytesseract)
-- **HuggingFace Transformers** - Deep learning model loading: [https://huggingface.co/docs/transformers/](https://huggingface.co/docs/transformers/)
+- **OpenCV** - Computer vision and image preprocessing: [https://opencv.org/](https://opencv.org/)
 - **Pillow (PIL)** - Python image processing: [https://python-pillow.org/](https://python-pillow.org/)
 - **Streamlit** - Interactive web applications: [https://streamlit.io](https://streamlit.io)
+- **OpenAI API** - GPT-5 for error correction: [https://platform.openai.com/docs](https://platform.openai.com/docs)
 
 ## Credits
 

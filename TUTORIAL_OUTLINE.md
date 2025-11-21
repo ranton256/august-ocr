@@ -121,102 +121,7 @@
 
 ---
 
-## 3. Part II: Handwriting Recognition from Photo Notes with TrOCR
-
-### 3.1 Introduction to TrOCR
-
-**Paper**: Li, M., et al. (2023). TrOCR: Transformer-based Optical Character Recognition with Pre-trained Models. [arXiv:2109.10282](https://arxiv.org/abs/2109.10282)
-
-- What is TrOCR? (Transformer-based OCR model from Microsoft)
-- Advantages over traditional OCR for handwritten text:
-  - **Transformer architecture** (encoder-decoder)
-  - Pre-trained on both printed and handwritten text
-  - Works well on modest hardware (CPU or GPU)
-  - State-of-the-art results on standard benchmarks
-- Model capabilities: cursive text, printed handwriting, various writing styles
-
-### 3.2 Setting Up TrOCR
-
-**Dependencies already in environment:**
-
-```
-torch>=2.0.0
-transformers>=4.30.0
-pillow
-```
-
-- Installation via transformers library
-- Model download and caching from HuggingFace
-- GPU vs. CPU inference considerations
-- Model variants: base vs. large
-
-### 3.3 Creating the Handwriting OCR Pipeline
-
-**File: `handwriting_ocr.py`**
-
-- **Loading the TrOCR model**
-  ```python
-  from transformers import TrOCRProcessor, VisionEncoderDecoderModel
-
-  def initialize_model():
-      processor = TrOCRProcessor.from_pretrained("microsoft/trocr-base-handwritten")
-      model = VisionEncoderDecoderModel.from_pretrained("microsoft/trocr-base-handwritten")
-      return processor, model
-  ```
-
-- **Preprocessing for photo inputs**
-  - Different requirements vs. scanned documents
-  - Handling various lighting conditions
-  - Perspective correction for angled photos
-  - CLAHE for contrast enhancement
-
-- **Running inference**
-  ```python
-  def extract_handwriting(processor, model, image_path):
-      image = Image.open(image_path)
-      pixel_values = processor(image, return_tensors="pt").pixel_values
-      generated_ids = model.generate(pixel_values)
-      text = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
-      return {
-          'text': text,
-          'model': 'microsoft/trocr-base-handwritten'
-      }
-  ```
-
-### 3.4 Handling Photo-Specific Challenges
-
-- **Lighting normalization**
-  - Adaptive histogram equalization
-  - Shadow removal techniques
-  - Dealing with glare and reflections
-
-- **Perspective correction**
-  - Detecting document edges
-  - Warping to rectangular view
-  - Using cv2.getPerspectiveTransform()
-
-- **Multi-page note detection**
-  - Splitting images with multiple note pages
-  - Auto-cropping individual sections
-
-### 3.5 Batch Processing Photo Notes
-
-**Extended: `handwriting_ocr.py`**
-
-- Creating a photo input directory structure
-- Processing multiple note images
-- Handling different image formats (JPEG, PNG, HEIC)
-- Organizing output by notebook/date/topic
-
-### 3.6 Optional: LLM Correction for Handwriting
-- When to apply GPT-4o correction to handwriting
-- Modified prompts for handwritten text
-- Comparison: TrOCR alone vs. TrOCR + LLM correction
-- Cost-benefit analysis
-
----
-
-## 4. Part III: Building the Unified Viewer
+## 3. Part II: Building the Unified Viewer
 
 ### 4.1 Extending the Streamlit App
 
@@ -272,7 +177,7 @@ pillow
 
 ---
 
-## 5. Part IV: Performance Analysis and Best Practices
+## 4. Part III: Performance Analysis and Best Practices
 
 ### 5.1 Accuracy Comparison
 
@@ -322,7 +227,7 @@ Is the text handwritten?
 
 ---
 
-## 6. Part V: Advanced Extensions
+## 5. Part IV: Advanced Extensions
 
 ### 6.1 Multi-Language Support
 - Tesseract language packs
@@ -350,7 +255,7 @@ Is the text handwritten?
 
 ---
 
-## 7. Conclusion
+## 6. Conclusion
 
 ### 7.1 Summary of What We Built
 - Two complementary OCR pipelines for different use cases
