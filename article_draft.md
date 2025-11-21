@@ -1380,68 +1380,6 @@ The project demonstrates that production-quality OCR doesn't require expensive c
 
 ## Appendix
 
-### A. Project Structure
-
-Complete repository organization:
-
-```
-august-ocr/
-├── text_from_pdfs.py          # Document OCR (Pytesseract)
-│                               # - PDF to image conversion
-│                               # - Region-based text extraction
-│                               # - Batch processing with traceability
-│
-├── handwriting_ocr.py          # Handwriting OCR (TrOCR)
-│                               # - TrOCR model loading
-│                               # - Photo preprocessing (CLAHE, perspective)
-│                               # - Batch processing handwritten notes
-│
-├── viewer_app.py               # Streamlit viewer
-│                               # - Unified results display
-│                               # - Interactive comparison views
-│                               # - Bounding box visualization
-│                               # - Export functionality
-│
-├── make_md.py                  # Markdown formatting
-│                               # - AI-powered structure generation
-│                               # - Converts plain text to formatted docs
-│
-├── benchmark.py                # Performance benchmarking
-│                               # - CER/WER metrics calculation
-│                               # - Method comparison
-│                               # - Ground truth management
-│
-├── common.py                   # Shared utilities
-│                               # - File path helpers
-│                               # - Common preprocessing functions
-│
-├── requirements.txt            # Python dependencies
-├── requirements_deepseek_4bit.txt  # DeepSeek-specific dependencies
-│
-├── test_deepseek_ocr_4bit.py   # DeepSeek OCR testing script
-├── ds_ocr_example.py           # DeepSeek OCR example
-├── ds_vllm_example.py          # DeepSeek vLLM example
-│
-├── output/                     # Generated results
-│   ├── results.csv             # Document OCR results
-│   ├── handwriting_results.csv # Handwriting OCR results
-│   ├── extracted.txt           # Raw OCR text
-│   ├── corrected.txt           # AI-corrected text
-│   ├── pages.md                # Formatted Markdown
-│   └── *_proc.jpg              # Preprocessed images
-│
-├── output_deepseek_4bit/       # DeepSeek 4-bit model outputs
-│
-├── images/                     # Input images (handwritten notes, documents)
-├── screenshots/                 # Screenshots and documentation images
-├── input_file_list.txt         # Batch processing file list
-│
-├── README.md                   # Quick start guide
-├── TUTORIAL_OUTLINE.md         # Detailed tutorial outline
-├── HANDWRITING_DATASETS.md     # Dataset recommendations
-├── DEEPSEEK_4BIT_TEST.md       # DeepSeek 4-bit testing documentation
-└── article_draft.md            # This article
-```
 
 **Key file purposes:**
 
@@ -1450,37 +1388,20 @@ august-ocr/
    - Region-based extraction for layout preservation
    - GPT-5 correction integration
 
-2. **handwriting_ocr.py** - Handwriting recognition
-   - TrOCR model management
-   - Photo-specific preprocessing
-   - Optional LLM correction
-
-3. **viewer_app.py** - Interactive results browser
+2. **viewer_app.py** - Interactive results browser
    - Side-by-side comparison
    - Quality assurance tool
    - Export capabilities
 
-4. **make_md.py** - Post-processing formatter
+3. **make_md.py** - Post-processing formatter
    - Converts corrected text to Markdown
    - Preserves content while adding structure
 
-5. **benchmark.py** - Accuracy measurement
+4. **benchmark.py** - Accuracy measurement
    - Compares OCR methods
    - Calculates error rates
    - Generates comparison reports
 
-6. **test_deepseek_ocr_4bit.py** - DeepSeek OCR testing
-   - Tests quantized 4-bit DeepSeek model
-   - Handles handwriting recognition
-   - Performance benchmarking
-
-7. **ds_ocr_example.py** - DeepSeek OCR usage example
-   - Demonstrates DeepSeek API integration
-   - OCR workflow examples
-
-8. **ds_vllm_example.py** - DeepSeek vLLM integration
-   - vLLM server usage examples
-   - Batch processing with DeepSeek
 
 ### B. Complete Setup Guide
 
