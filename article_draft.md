@@ -453,65 +453,91 @@ st.set_page_config(
 )
 
 def main():
-    st.title("OCR Comparison App")
+    st.title("OCR Result Viewer")
 
-    # Mode selection
-    mode = st.radio(
-        "Select OCR Mode:",
-        ["Document OCR (Pytesseract)", "Handwriting OCR (TrOCR)"],
-        horizontal=True
-    )
+    st.write("""View and validate OCR results from the PyTesseract pipeline.
+    Compare original images, preprocessing effects, raw OCR output, and AI-corrected text.""")
 
-    # Load appropriate results
-    if mode == "Document OCR (Pytesseract)":
-        results_file = "output/results.csv"
-        description = """Traditional OCR using PyTesseract with OpenCV preprocessing
-        and GPT-5 correction. Best for typed or printed documents."""
-    else:
-        results_file = "output/handwriting_results.csv"
-        description = """Handwriting recognition using Microsoft's TrOCR transformer model.
-        Best for handwritten notes captured with a phone camera."""
+    # Load results
+    results_file = "output/results.csv"
 
-    st.write(description)
-
-    # Load and display results
     if not os.path.exists(results_file):
         st.warning(f"Results file not found: {results_file}")
-        st.info(f"Run the appropriate OCR pipeline first")
+        st.info("Run `python text_from_pdfs.py` to generate OCR results")
         return
 
     df = pd.read_csv(results_file)
-    display_results(df, mode)
+    n_pages = len(df)
+
+    if n_pages == 0:
+        st.write("No pages to show")
+        return
+
+    # Page navigation
+    page = st.slider('Select Page', 1, n_pages, 1)
+    display_page(df, page)
 ```
 
-### Enhanced Comparison View
+### Document OCR Viewer Layout
 
-The viewer presents different layouts optimized for each OCR type:
-
-**Layout for Handwriting OCR (3-column):**
-
-```
-┌────────────────────────────────────────────────────────┐
-│ Original Photo  │ Preprocessed  │ TrOCR Output         │
-│                 │ (corrected)   │ + Extracted Text     │
-└────────────────────────────────────────────────────────┘
-```
-
-**Layout for Document OCR (4-column):**
+The viewer uses a 4-stage comparison layout:
 
 ```
 ┌────────────────────────────────────────────────────────┐
 │ Original Image  │ Preprocessed │ Extracted │ Corrected│
-│                 │              │ (OCR)     │ (GPT-5) │
+│                 │              │ (OCR)     │ (GPT-5)  │
 └────────────────────────────────────────────────────────┘
 ```
 
 This allows side-by-side comparison of each processing step:
 
-- See the original input quality
-- Verify preprocessing improved the image
-- Compare raw OCR vs. AI-corrected text
-- Identify where errors occurred in the pipeline
+- **Original** - See the input quality and challenges
+- **Preprocessed** - Verify that preprocessing improved text clarity
+- **Extracted** - Raw PyTesseract output showing any OCR errors
+- **Corrected** - GPT-5 corrected text showing improvements
+
+**Implementation:**
+
+```python
+def display_page(df, page_num):
+    """Display all processing stages for a single page"""
+
+    # Load page data
+    image_path = df.loc[page_num - 1, 'image_path']
+    extracted_text = df.loc[page_num - 1, 'extracted']
+    corrected_text = df.loc[page_num - 1, 'corrected']
+
+    # Load images
+    original_image = Image.open(image_path)
+    preprocessed_path = get_preproc_path(image_path, "output")
+    preprocessed_image = Image.open(preprocessed_path)
+
+    # Display images side-by-side
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.image(original_image, caption=f"Original Page {page_num}", use_column_width=True)
+
+    with col2:
+        st.image(preprocessed_image, caption=f"Preprocessed Page {page_num}", use_column_width=True)
+
+    # Display text results side-by-side
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.subheader("Extracted Text (Raw OCR)")
+        st.text_area("", extracted_text, height=400)
+
+    with col2:
+        st.subheader("Corrected Text (GPT-5)")
+        st.text_area("", corrected_text, height=400)
+        if corrected_text:
+            word_count = len(corrected_text.split())
+            char_count = len(corrected_text)
+            st.caption(f"{word_count} words, {char_count} characters")
+```
+
+This layout makes it easy to identify where OCR errors occurred and validate AI corrections.
 
 ### Interactive Features
 
@@ -578,14 +604,14 @@ if show_boxes:
 
 This helps identify which parts of the document need manual review.
 
-#### 2. Method Comparison and Diff View
+#### 2. Before/After Diff View
 
-Compare OCR methods side-by-side with visual diff:
+Compare raw OCR output with AI-corrected text using a visual diff:
 
 ```python
-def create_diff_view(text1, text2, method1="Pytesseract", method2="TrOCR"):
+def create_diff_view(text1, text2, label1="Raw OCR", label2="Corrected"):
     """
-    Create HTML diff view showing differences between two OCR methods
+    Create HTML diff view showing differences between raw and corrected text
     """
     import difflib
 
@@ -593,41 +619,43 @@ def create_diff_view(text1, text2, method1="Pytesseract", method2="TrOCR"):
     diff = difflib.HtmlDiff().make_table(
         text1.splitlines(),
         text2.splitlines(),
-        fromlabel=method1,
-        tolabel=method2
+        fromlabel=label1,
+        tolabel=label2
     )
 
     return diff
 
 
 # In Streamlit
-st.subheader("Method Comparison")
+st.subheader("Correction Comparison")
 
 col1, col2 = st.columns(2)
 with col1:
-    st.write(f"**{method1}**")
-    st.text_area("", pytesseract_result, height=300)
+    st.write("**Raw OCR Output**")
+    st.text_area("", extracted_text, height=300)
 
 with col2:
-    st.write(f"**{method2}**")
-    st.text_area("", trocr_result, height=300)
+    st.write("**AI-Corrected Text**")
+    st.text_area("", corrected_text, height=300)
 
 # Show diff
 if st.checkbox("Show differences"):
-    diff_html = create_diff_view(pytesseract_result, trocr_result)
+    diff_html = create_diff_view(extracted_text, corrected_text)
     st.components.v1.html(diff_html, height=400, scrolling=True)
 
 # Calculate and display metrics
 if ground_truth:
     st.subheader("Accuracy Metrics")
-    cer1 = calculate_cer(ground_truth, pytesseract_result)
-    cer2 = calculate_cer(ground_truth, trocr_result)
+    cer_raw = calculate_cer(ground_truth, extracted_text)
+    cer_corrected = calculate_cer(ground_truth, corrected_text)
 
     col1, col2 = st.columns(2)
     with col1:
-        st.metric("Pytesseract CER", f"{cer1:.2%}")
+        st.metric("Raw OCR CER", f"{cer_raw:.2%}")
     with col2:
-        st.metric("TrOCR CER", f"{cer2:.2%}", delta=f"{(cer1-cer2):.2%}")
+        st.metric("Corrected CER", f"{cer_corrected:.2%}",
+                 delta=f"{(cer_raw-cer_corrected):.2%}",
+                 delta_color="inverse")
 ```
 
 #### 3. Export Functionality
@@ -778,11 +806,11 @@ streamlit run viewer_app.py
 
 The viewer opens at `http://localhost:8501` with:
 
-- Mode selector (Document OCR / Handwriting OCR)
-- Page navigation (buttons + slider)
+- Page navigation (slider)
 - Image comparison (original vs. preprocessed)
 - Text comparison (extracted vs. corrected)
-- Statistics and metadata
+- Word/character counts and statistics
+- Optional diff view for detailed comparison
 
 ---
 
