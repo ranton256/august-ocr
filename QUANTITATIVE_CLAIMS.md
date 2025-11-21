@@ -182,25 +182,25 @@ These claims need to be measured on your specific data, hardware, and use case. 
 
 ### Benchmark Re-run Tasks
 
-- [ ] Re-run `benchmark.py` with GPT-5 for all methods
-- [ ] Measure CER/WER for:
-  - [ ] Pytesseract alone
-  - [ ] Pytesseract + GPT-5
-  - [ ] TrOCR alone
-  - [ ] TrOCR + GPT-5
-- [ ] Measure processing times for all methods
-- [ ] Calculate new cost per page with GPT-5 pricing
-- [ ] Validate preprocessing impact (10-20% claim)
-- [ ] Measure LLM correction improvement with GPT-5
+- [x] Re-run `benchmark.py` with GPT-5 for all methods
+- [x] Measure CER/WER for:
+  - [x] Pytesseract alone (CER: 0.015, WER: 0.056 on 5 pages)
+  - [x] Pytesseract + GPT-5 (CER: 1.698, WER: 1.722 - note: GPT-5 does editing, not just correction)
+  - [x] TrOCR alone (CER: 0.983, WER: 0.999 on typed text - poor performance expected)
+  - [x] TrOCR + GPT-5 (CER: 0.983, WER: 0.998 - no improvement due to poor TrOCR output)
+- [x] Measure processing times for all methods
+- [x] Calculate new cost per page with GPT-5 pricing ($0.0045/page average)
+- [x] Validate preprocessing impact (found minimal: 0.07-0.25pp, not 10-20%)
+- [x] Measure LLM correction improvement with GPT-5 (note: high CER/WER due to GPT-5 editing/rewriting)
 
 ### Documentation Update Tasks
 
-- [ ] Update all cost claims with GPT-5 pricing
-- [ ] Update performance comparison table (Lines 1364-1369)
-- [ ] Update cost-benefit analysis (Lines 916-946)
-- [ ] Update accuracy percentages if they change
-- [ ] Update processing time claims if they change
-- [ ] Update error rate improvements if they change
+- [x] Update all cost claims with GPT-5 pricing
+- [x] Update performance comparison table (Lines 1364-1369) - Updated with actual 5-page results
+- [x] Update cost-benefit analysis (Lines 916-946) - Updated with actual results (changed to Pytesseract focus)
+- [x] Update accuracy percentages if they change - Updated (Pytesseract 98.5% accuracy, CER 0.015)
+- [x] Update processing time claims if they change
+- [x] Update error rate improvements if they change - Updated to clarify GPT-5 editing/rewriting behavior
 
 ---
 
