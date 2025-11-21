@@ -127,18 +127,42 @@ class OCRBenchmark:
         Initialize benchmark
 
         Args:
-            ground_truth_file: JSON file with ground truth annotations
-                Format: {"image_path": "ground truth text", ...}
+            ground_truth_file: Deprecated - kept for compatibility but not used.
+                Ground truth is now loaded from individual files in ground_truth/ directory.
             openai_client: OpenAI client for LLM correction (optional)
         """
-        self.ground_truth = {}
-        if ground_truth_file and os.path.exists(ground_truth_file):
-            with open(ground_truth_file, 'r') as f:
-                self.ground_truth = json.load(f)
-            print(f"Loaded {len(self.ground_truth)} ground truth annotations")
-
+        # Ground truth is loaded on-demand from files, not from JSON
         self.openai_client = openai_client
         self.results = []
+        
+    def _load_ground_truth(self, image_path: str) -> Optional[str]:
+        """
+        Load ground truth text from a file based on image path.
+        
+        Looks for: ground_truth/{image_basename}_ref.txt
+        Example: images/IMG_8479.jpg -> ground_truth/IMG_8479_ref.txt
+        
+        Args:
+            image_path: Path to the image file
+            
+        Returns:
+            Ground truth text if file exists, None otherwise
+        """
+        # Extract basename and convert .jpg/.png/etc to _ref.txt
+        image_basename = Path(image_path).stem  # Gets "IMG_8479" from "images/IMG_8479.jpg"
+        ground_truth_path = Path("ground_truth") / f"{image_basename}_ref.txt"
+        
+        if ground_truth_path.exists():
+            try:
+                with open(ground_truth_path, 'r', encoding='utf-8') as f:
+                    lines = f.readlines()
+                    # Skip header lines that start with # (comments)
+                    text_lines = [line.rstrip('\n') for line in lines if line.strip() and not line.strip().startswith('#')]
+                    return '\n'.join(text_lines)
+            except Exception as e:
+                print(f"Warning: Could not load ground truth from {ground_truth_path}: {e}")
+                return None
+        return None
 
     def benchmark_pytesseract(self, image_path: str) -> Dict:
         """
@@ -322,7 +346,7 @@ class OCRBenchmark:
         print(f"\nBenchmarking: {image_path}")
 
         results = []
-        ground_truth = self.ground_truth.get(image_path, None)
+        ground_truth = self._load_ground_truth(image_path)
 
         for method in methods:
             if method == 'pytesseract':
@@ -493,13 +517,13 @@ class OCRBenchmark:
         print(f"\nReport saved to {output_file}")
 
 
-def create_ground_truth_template(image_dir: str, output_file: str = 'ground_truth.json'):
+def create_ground_truth_template(image_dir: str, output_file: str = None):
     """
-    Create a template JSON file for ground truth annotations
+    Create template text files for ground truth annotations in ground_truth/ directory
 
     Args:
         image_dir: Directory containing images
-        output_file: Path to save template
+        output_file: Deprecated - kept for compatibility but not used
     """
     # Find images
     image_extensions = {'.jpg', '.jpeg', '.png', '.bmp', '.tiff'}
@@ -508,17 +532,28 @@ def create_ground_truth_template(image_dir: str, output_file: str = 'ground_trut
         image_files.extend(Path(image_dir).glob(f"*{ext}"))
         image_files.extend(Path(image_dir).glob(f"*{ext.upper()}"))
 
-    # Create template
-    template = {}
+    # Create ground_truth directory if it doesn't exist
+    ground_truth_dir = Path("ground_truth")
+    ground_truth_dir.mkdir(exist_ok=True)
+
+    # Create template files
+    created_count = 0
     for image_path in sorted(image_files):
-        template[str(image_path)] = ""
+        image_basename = Path(image_path).stem
+        ground_truth_file = ground_truth_dir / f"{image_basename}_ref.txt"
+        
+        # Only create if it doesn't exist
+        if not ground_truth_file.exists():
+            with open(ground_truth_file, 'w', encoding='utf-8') as f:
+                f.write(f"# Ground Truth for {image_path}\n")
+                f.write("#\n")
+                f.write("# Enter the correct text from this image below:\n")
+                f.write("#\n")
+                f.write("\n")
+            created_count += 1
 
-    # Save
-    with open(output_file, 'w') as f:
-        json.dump(template, f, indent=2)
-
-    print(f"Ground truth template saved to {output_file}")
-    print(f"Fill in the correct text for each image, then use with --ground-truth flag")
+    print(f"Created {created_count} ground truth template files in {ground_truth_dir}/")
+    print(f"Edit the *_ref.txt files to add the correct text for each image")
 
 
 def main():
@@ -535,7 +570,7 @@ def main():
         '--ground-truth',
         type=str,
         default=None,
-        help='JSON file with ground truth annotations'
+        help='Deprecated: Ground truth is now automatically loaded from ground_truth/*_ref.txt files'
     )
     parser.add_argument(
         '--methods',
@@ -606,8 +641,8 @@ def main():
             print(f"Error initializing OpenAI client: {e}")
             return
 
-    # Run benchmark
-    benchmark = OCRBenchmark(ground_truth_file=args.ground_truth, openai_client=openai_client)
+    # Run benchmark (ground truth is loaded automatically from ground_truth/*_ref.txt files)
+    benchmark = OCRBenchmark(ground_truth_file=None, openai_client=openai_client)
     df = benchmark.benchmark_directory(
         args.input,
         methods=args.methods,

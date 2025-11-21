@@ -1,0 +1,189 @@
+method,text,processing_time,cer,wer,image_path,has_ground_truth,model,ocr_time,llm_time,input_tokens,output_tokens,cost
+pytesseract,"
+
+REFLECTIONS""
+
+Memories of the Life of August Anton
+written as a result of the motivation of his friends
+published by the writer
+
+(Eagle)",2.8403918743133545,0.021897810218978103,0.08333333333333333,images/IMG_8478.jpg,True,,,,,,
+trocr,2 3 months ago,0.7055361270904541,0.927007299270073,1.0,images/IMG_8478.jpg,True,microsoft/trocr-base-handwritten,,,,,
+pytesseract_gpt5,"Would you like this polished as a book title page? Here are clean, idiomatic options.
+
+If August Anton is the author:
+- Reflections: Memories from My Life
+  by August Anton
+  Written at the urging of my friends
+  Self-published
+
+If someone else wrote about August Anton:
+- Reflections: Memories from the Life of August Anton
+  Written at the urging of his friends
+  Published by the author
+  Eagle
+
+More formal/literary variants:
+- Reflections: Memoirs of August Anton
+- Reflections: Recollections from the Life of August Anton
+- Reflections: A Memoir
+
+Notes:
+- Remove the stray quotation mark after Reflections.
+- “Written as a result of the motivation of his friends” reads awkwardly; “Written at the urging (or encouragement/request) of his friends” is natural.
+- “Published by the writer” is unusual; use “Published by the author,” “Self-published,” or “Privately printed.”
+- If Eagle is the publisher/imprint, drop the parentheses and present it plainly (e.g., Eagle Press). If it’s a logo, you can keep it as a mark without parentheses.
+
+Quick questions to finalize:
+1) Is August Anton the author, or the subject?
+2) Should “Eagle” be shown as the publisher name (e.g., Eagle Publishing) or as a logo?",39.957886934280396,7.700729927007299,7.375,images/IMG_8478.jpg,True,,2.932982921600342,37.024904012680054,34.0,301.0,0.0030525
+trocr_gpt5,2-3 months ago,9.361644983291626,0.927007299270073,1.0,images/IMG_8478.jpg,True,microsoft/trocr-base-handwritten,0.7037930488586426,8.657851934432983,3.0,3.0,3.375e-05
+pytesseract,"
+‘To my friends and countrymen!
+
+Approached from many sides to write down my life’s memories as well as the events
+Or the year ‘48, as far as | was personally touched by them, and to publish these
+Memories, | will herewith fulfill the wish of my friends and only ask for your kind
+indulgence, if my descriptions fail to be elegant. Well then, | will do the best / can.
+
+Once upon a time, many, many years ago, in the old city of Zerbst, in the beautiful
+‘and of Anhalt, located in the German homeland, a strong boy was born to an honest
+Oraper by his mistress. This boy was later baptized in the reformed church and
+received the name August. Now / cannot honestly remember all the details, only this
+much was clear to me, that |! must be August. Now, the boy grew up, food and drink
+Ne loved to taste and when he, because of his young ways, did some dumb pranks,
+he then often received quite sensible memories from his father or his mother.
+
+With my sixth year, | was sent to a so-called ""Winkel School” (Corner school) which
+was run by an old Kantor widow named ""Durre"" and was assisted by her already
+pretty mature daughter “Auguste”. Later, when the City Council of Zerbst had a huge
+Stately building erected and designated jt to be a public school, all school-aged
+children, from five to fourteen years old and to attend it and the “Winkel School”
+ceased operation. At the examination, | received a report card: Accepted into first
+grade on a trial basis! | went there for the next five years and in the last two years
+/ was the top student.
+
+In the year 1844 | was confirmed and now it was time to chose a profession for life.
+/ would have loved to become a fur tanner, however, | was unable to find a master
+to teach me. In 1842 1 began an apprenticeship at a brother of my mother, who was
+a master in the fur tanning profession, and | worked at his place during my free time
+when / did not have school. / had to be confirmed first and before | was able to be
+confirmed, he died and, since / could not find another master, even though | tried very
+hard, | began my apprenticeship with Franz Wiegand, the best cabinet maker around.
+The apprenticeship period lasted four years, 8 June 1848, after having passed my
+apprentice exam, | was declared carpenter officer and the court assessor in office took
+my word and handshake and made it my duty to travel to foreign lands, to see other
+cities and countries, so that, when the time came, | could become a capable master
+of the trade and a good citizen. Now, that | have honestly done; before / tell about
+it, though, | would like to first talk a bit about the beautiful land of Anhalt and then
+about the events of the year 48.
+
+Now, Curing the beautiful pre-March time, the reigning princes of our German
+fatherland were the A and O. (Alpha and Omega). The sun, around which everything
+turned and! would like to be permitted to describe some of our has-been landowners.
+“Albrecht the Bear"", a mighty warrior before God, was the founder of the dynasty.
+/ suppose there would be little interest if | wanted to recite the entire family tree.
+We ‘il talk a little bit about the old Dessauer, the old Mustache, who was a successful
+general under two emperors and two kings. He did a stupid prank in the eyes of his",3.838247060775757,0.021805896805896806,0.09508196721311475,images/IMG_8479.jpg,True,,,,,,
+trocr,0 0,0.4958500862121582,0.9996928746928747,1.0,images/IMG_8479.jpg,True,microsoft/trocr-base-handwritten,,,,,
+pytesseract_gpt5,"Would you like this copyedited into clear, idiomatic English while keeping the period tone? Here is a polished version of what you posted, with obvious OCR glitches corrected and awkward phrasing smoothed. I’ve kept historical flavor and only modernized where it aids clarity.
+
+To my friends and countrymen!
+
+Urged on many sides to set down the memories of my life, as well as the events of ’48 insofar as they touched me personally, and to publish these recollections, I will hereby fulfill my friends’ wish and only ask your kind indulgence if my descriptions are less than elegant. Well then, I will do the best I can.
+
+Once upon a time, many years ago, in the old city of Zerbst, in the beautiful land of Anhalt, in the German homeland, a sturdy boy was born to an honest Oraper by his mistress. This boy was later baptized in the Reformed church and given the name August. Now, I cannot honestly recall all the details; only this much was clear to me: I must be that August. The boy grew up, loved food and drink, and when, because of his youthful ways, he played some foolish pranks, he often received quite sensible reminders from his father or his mother.
+
+At six, I was sent to a so‑called “Winkel school” (“corner school”), which was run by an old cantor’s widow named Dürre and assisted by her already quite mature daughter, Auguste. Later, when the City Council of Zerbst had a large, stately building erected and designated it a public school, all school‑aged children from five to fourteen were to attend it, and the Winkel school ceased operation. At the examination I received a report: admitted to first grade on a trial basis. I went there for the next five years, and in the last two years I was the top student.
+
+In 1844 I was confirmed, and now it was time to choose a profession for life. I would have loved to become a fur tanner; however, I was unable to find a master to take me on. In 1842 I had begun an apprenticeship with my mother’s brother, who was a master in the fur‑tanning trade, and I worked for him in my free time when I was not at school. I had to be confirmed first, and before I could be, he died; and since I could not find another master, though I tried very hard, I began my apprenticeship with Franz Wiegand, the best cabinetmaker around. The apprenticeship lasted four years. On 8 June 1848, after passing my examination, I was declared a journeyman carpenter, and the court assessor accepted my word and handshake and made it my duty to travel to foreign parts, to see other cities and countries, so that, when the time came, I could become a capable master of the trade and a good citizen. That I have honestly done; before I tell of it, though, I would first like to speak a bit about the beautiful land of Anhalt, and then about the events of the year ’48.
+
+During the beautiful pre‑March time, the reigning princes of our German fatherland were the A and O (Alpha and Omega), the sun around which everything revolved; and I would like to be permitted to describe some of our former rulers. “Albrecht the Bear,” a mighty warrior before God, was the founder of the dynasty. I suppose there would be little interest if I were to recite the entire family tree. We will talk a little about the Old Dessauer, the Old Mustache, who was a successful general under two emperors and two kings. He played a foolish prank in the eyes of his—
+
+A few quick notes/questions:
+- Oraper and mistress: These look like OCR or translation anomalies. Do you mean cooper (barrel‑maker) or draper, and wife (not mistress)?
+- Kantor/cantor: I used “cantor’s widow,” which is the usual English.
+- Winkel school: I left a brief gloss (“corner school”). If you prefer, I can translate it as “small private dame school.”
+- Journeyman: “Carpenter officer” is non‑idiomatic; “journeyman carpenter” fits the guild system described.
+- Pre‑March: I rendered Vormärz as “pre‑March time,” the usual historical term is “the Vormärz.”
+
+If you like this approach, I can continue polishing the next section as well.",62.196147203445435,0.4355036855036855,0.4901639344262295,images/IMG_8479.jpg,True,,3.8205292224884033,58.37561798095703,815.0,1006.0,0.01107875
+trocr_gpt5,O O,25.549302101135254,0.9990786240786241,0.9983606557377049,images/IMG_8479.jpg,True,microsoft/trocr-base-handwritten,0.5568640232086182,24.992438077926636,0.0,0.0,0.0
+pytesseract,"
+
+relatives, who were very proud of their ancestors, to where he fell in love with a
+
+common girl, the daughter of a pharmacist, her name being Anna Foehsin, and he
+
+(hen married her contrary to all arguments, made her into a reigning princess and lived
+
+with her happily for a long time, and also made sure there were plenty of offsprings.
+
+To possess her, he did not back down from anything, he even stabbed her alleged
+lover, whom he found once in a kneeling position in front of her. For this, a common
+
+Mortal would have been punished as a murderer, but since he stemmed from God’s
+Grace, he was allowed to do this. More about his characterization is the following:
+As he once, as an Austrian field general, returned from a war victoriously, he was
+received by the people of a southern city with a fitting festive march (music), which
+he liked so very much, that this march had to be played at each fitting occasion. He
+did not want to hear anything else anymore, just the so-called ""Dessauer March"";
+yes, even in church, when the entire congregation sang holy songs, he would shout
+out loudly with his terrible bear voice the favorite march, for which the following text
+was written by agenius:
+
+This is how we live!
+This is how we live!
+This is how we live each day!
+With the most beautiful drinking buddies!
+In the morning with brandy,
+At noon with beer,
+In the evening with the virgins in their bedroom!
+
+Even when he was on his deathbed they had to play this melody for him and he would
+yell out the text along, until his last breath.
+
+For a successor Franz, called by all his subordinates Father Franz, this was an
+opportunity, being a quite tight and people loving prince, who had only the welfare
+of his subordinates at heart and was against all military actions. His favorite pastime
+was to travel through the land, on foot, to visit each village and town. He visited
+each school to convince himself o the capability of the teachers and the progress of
+the students. He walked each street and lane and talked with all he met, regardless
+if they were rich or poor, noble or common.
+
+His successor, Duke Leopold Friedrich, was again the opposite. He was people shy,
+did not care about the government, left everything to his advisors, who exploited the
+land the citizens in the most shameless way. His only passion was to hunt every day,
+to cross through the woods back and forth was the only hobby he had. No wonder
+then, that in the year 48 the exploited people welcomed the Revolution.
+
+Ss vil, | want to tell about a princess from Anhalt, who was meant to play a big role in
+world history. She was selected to be the wife of the Russian Emperor Paul, and
+when he died, he was a very unimportant human moron, she became Emperor of
+Russia under the name Katharina Il. World history teaches us that she enlarged the
+Russian State quite a lot and broadened its borders and reached the highest step on
+the ladder to power. Therefore, she was called ""Katharina the Great"". The famous
+historian, Johannes von Mueller, says about her: She was great, if greatness could",3.9829540252685547,0.0035889070146818925,0.016216216216216217,images/IMG_8480.jpg,True,,,,,,
+trocr,0 0,0.4876692295074463,0.999673735725938,1.0,images/IMG_8480.jpg,True,microsoft/trocr-base-handwritten,,,,,
+pytesseract_gpt5,"Here is a polished, idiomatic English version of your passage:
+
+He visited his relatives, who were very proud of their ancestors, and there he fell in love with a common girl, the daughter of a pharmacist, named Anna Foehsin. He then married her contrary to all arguments, made her a reigning princess, and lived with her happily for a long time, making sure there was plenty of offspring. To possess her, he did not shrink from anything; he even stabbed her alleged lover, whom he once found kneeling before her. An ordinary mortal would have been punished as a murderer for this, but since he ruled by the grace of God, he was allowed to do it. More about his character is the following: When, as an Austrian field general, he once returned victorious from war, he was received by the people of a southern city with a fitting festive march, which he liked so much that it had to be played at every suitable occasion. He wanted to hear nothing else anymore, only the so‑called “Dessauer March.” Yes, even in church, when the entire congregation sang holy hymns, he would shout out his favorite march in his terrible, bear‑like voice, for which a genius wrote the following text:
+
+This is how we live!
+This is how we live!
+This is how we live each day!
+With the finest drinking buddies!
+In the morning with brandy,
+At noon with beer,
+In the evening with the virgins in their bedroom!
+
+Even on his deathbed they had to play this melody for him, and he shouted the words along until his last breath.
+
+For his successor, Franz—called by all his subjects Father Franz—this was an opportunity. He was a rather frugal, people‑loving prince who had only the welfare of his subjects at heart and opposed all military action. His favorite pastime was to travel through the land on foot, visiting every village and town. He visited each school to judge the capabilities of the teachers and the progress of the students. He walked every street and lane and spoke with everyone he met, whether rich or poor, noble or common.
+
+His successor, Duke Leopold Friedrich, was again the opposite. He was shy of people and cared little for governing, leaving everything to his advisers, who exploited the land and the citizens in the most shameless way. His only passion was to hunt every day; to roam the woods back and forth was his sole hobby. No wonder, then, that in ’48 the exploited people welcomed the Revolution.
+
+So now I want to tell of a princess from Anhalt who was to play a great role in world history. She was chosen to be the wife of the Russian Emperor Paul, and when he died—he was a very insignificant simpleton—she became Empress of Russia under the name Catherine II. History teaches that she greatly enlarged the Russian state and extended its borders, reaching the highest rung on the ladder of power. Therefore she was called “Catherine the Great.” The famous historian Johannes von Müller says of her: She was great, if greatness could—
+
+If you’d like a more formal, modernized tone or a version that preserves more of the original voice, I can adjust accordingly.",44.202526330947876,0.2796084828711256,0.3963963963963964,images/IMG_8480.jpg,True,,3.9650611877441406,40.237465143203735,768.0,767.0,0.00863
+trocr_gpt5,0 0,29.914558172225952,0.999673735725938,1.0,images/IMG_8480.jpg,True,microsoft/trocr-base-handwritten,0.5720870494842529,29.3424711227417,0.0,0.0,0.0
