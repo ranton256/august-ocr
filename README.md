@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project demonstrates a complete pipeline for digitizing historical printed documents using traditional OCR combined with modern AI correction. The approach uses [PyTesseract](https://github.com/h/pytesseract), [OpenCV](https://opencv.org/), and OpenAI's [GPT-5](https://openai.com/index/hello-gpt-5/) to convert scanned pages into accurate, searchable text.
+This project demonstrates a complete pipeline for digitizing historical printed documents using traditional OCR combined with modern AI correction. The approach uses [PyTesseract](https://github.com/h/pytesseract), [OpenCV](https://opencv.org/), and a large language model (LLM) to convert scanned pages into accurate, searchable text.
 
 **What makes this project unique:**
 
@@ -63,7 +63,7 @@ brew install poppler
 
 ### Python Environment
 
-T TODO: 
+TODO: 
 
 
 ### API Configuration
@@ -154,11 +154,11 @@ Smith, R. (2007). **An Overview of the Tesseract OCR Engine**. In *Proceedings o
 
 > Tesseract is the foundational open-source OCR engine used for document text extraction in this project. Originally developed by HP in the 1980s, it was open-sourced by Google and remains one of the most accurate OCR engines for printed text.
 
-### GPT-4o
+### GPT-5
 
-OpenAI. (2024). **GPT-4o System Card**. *arXiv preprint arXiv:2410.21276*. [https://arxiv.org/abs/2410.21276](https://arxiv.org/abs/2410.21276)
+OpenAI. (2025). **GPT-5 System Card**. <https://openai.com/index/gpt-5-system-card/>
 
-> GPT-4o (via GPT-5 API) is used in this project for intelligent OCR error correction, leveraging its language understanding to fix common OCR mistakes while preserving the original meaning and style.
+> GPT-5 is used in this project for intelligent OCR error correction, leveraging its language understanding to fix common OCR mistakes while preserving the original meaning and style.
 
 ### BibTeX Entries
 
@@ -172,12 +172,13 @@ OpenAI. (2024). **GPT-4o System Card**. *arXiv preprint arXiv:2410.21276*. [http
   publisher = {IEEE Computer Society}
 }
 
-@article{openai2024gpt4o,
-  title={GPT-4o System Card},
-  author={OpenAI},
-  journal={arXiv preprint arXiv:2410.21276},
-  year={2024},
-  url={https://arxiv.org/abs/2410.21276}
+@manual{openai2025gpt5,
+  title        = {GPT-5 System Card},
+  author       = {OpenAI},
+  year         = {2025},
+  note         = {\url{https://cdn.openai.com/gpt-5-system-card.pdf}},
+  howpublished = {\url{https://cdn.openai.com/gpt-5-system-card.pdf}},
+  organization = {OpenAI}
 }
 ```
 

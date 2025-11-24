@@ -16,25 +16,12 @@ st.set_page_config(
 def main():
     st.title("OCR Comparison App")
 
-    # Mode selection
-    mode = st.radio(
-        "Select OCR Mode:",
-        ["Document OCR (Pytesseract)", "Handwriting OCR (TrOCR)"],
-        horizontal=True,
-        help="Choose between traditional document OCR or handwriting recognition"
-    )
-
-    # Load appropriate results file
-    if mode == "Document OCR (Pytesseract)":
-        results_file = "output/results.csv"
-        description = """This shows traditional OCR using PyTesseract, Pillow, and opencv-python.
-It performs preprocessing steps to improve results, then uses OpenAI's GPT-4o to correct the OCR output.
+    # Default to Document OCR mode
+    mode = "Document OCR (Pytesseract)"
+    results_file = "output/results.csv"
+    description = """This shows traditional OCR using PyTesseract, Pillow, and opencv-python.
+It performs preprocessing steps to improve results, then uses OpenAI's GPT-5 to correct the OCR output.
 This works best for typed or printed documents."""
-    else:
-        results_file = "output/handwriting_results.csv"
-        description = """This shows handwriting recognition using Microsoft's TrOCR, a transformer-based OCR model.
-It's specifically trained on handwritten text and works well on both cursive and printed handwriting.
-This works best for handwritten notes captured with a phone camera."""
 
     st.write(description)
     st.write("For more information see the [README](https://github.com/ranton256/august-ocr/blob/main/README.md).")
@@ -42,10 +29,7 @@ This works best for handwritten notes captured with a phone camera."""
     # Check if results file exists
     if not os.path.exists(results_file):
         st.warning(f"Results file not found: {results_file}")
-        if mode == "Handwriting OCR (TrOCR)":
-            st.info("Run `python handwriting_ocr.py --input handwriting_images/` to generate handwriting results.")
-        else:
-            st.info("Run `python text_from_pdfs.py` to generate document OCR results.")
+        st.info("Run `python text_from_pdfs.py` to generate document OCR results.")
         return
 
     df = pd.read_csv(results_file)
@@ -113,18 +97,8 @@ This works best for handwritten notes captured with a phone camera."""
     image = Image.open(image_path)
 
     # For document OCR, use the standard preprocessing path
-    # For handwriting OCR, look for preprocessed_path column
-    if mode == "Document OCR (Pytesseract)":
-        pre_path = get_preproc_path(image_path, output_dir)
-        pre_caption = f'Preprocessed Page {page}'
-    else:
-        # Handwriting results have preprocessed_path column
-        if 'preprocessed_path' in df.columns:
-            pre_path = df.loc[page - 1, 'preprocessed_path']
-            pre_caption = f'Preprocessed Photo {page}'
-        else:
-            pre_path = image_path  # Fallback to original
-            pre_caption = f'Original Photo {page}'
+    pre_path = get_preproc_path(image_path, output_dir)
+    pre_caption = f'Preprocessed Page {page}'
 
     # Check if preprocessed image exists
     if os.path.exists(pre_path):
@@ -136,7 +110,7 @@ This works best for handwritten notes captured with a phone camera."""
     col1, col2 = st.columns(2)
 
     with col1:
-        caption = f'Page {page}' if mode == "Document OCR (Pytesseract)" else f'Photo {page}'
+        caption = f'Page {page}'
         st.image(image, caption=caption, use_column_width=True)
 
     with col2:
@@ -148,10 +122,6 @@ This works best for handwritten notes captured with a phone camera."""
     with col1:
         st.subheader("Extracted Text")
         st.write(extracted_text)
-
-        # Show model info for handwriting mode
-        if mode == "Handwriting OCR (TrOCR)" and 'model' in df.columns:
-            st.caption(f"Model: {df.loc[page - 1, 'model']}")
 
     with col2:
         st.subheader("Corrected Text")
