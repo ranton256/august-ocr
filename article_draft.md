@@ -445,6 +445,7 @@ The viewer (`viewer_app.py`) displays OCR results for document processing:
 import streamlit as st
 import pandas as pd
 from PIL import Image
+from common import get_preproc_path # Assuming this is available and needed
 
 st.set_page_config(
     page_title="August OCR",
@@ -453,17 +454,16 @@ st.set_page_config(
 )
 
 def main():
-    st.title("OCR Result Viewer")
+    st.title("OCR Comparison App") # Updated title
+    st.write("""This shows traditional OCR using PyTesseract, Pillow, and opencv-python.
+It performs preprocessing steps to improve results, then uses OpenAI's GPT-5 to correct the OCR output.
+This works best for typed or printed documents.""") # Updated description
 
-    st.write("""View and validate OCR results from the PyTesseract pipeline.
-    Compare original images, preprocessing effects, raw OCR output, and AI-corrected text.""")
-
-    # Load results
     results_file = "output/results.csv"
 
     if not os.path.exists(results_file):
         st.warning(f"Results file not found: {results_file}")
-        st.info("Run `python text_from_pdfs.py` to generate OCR results")
+        st.info("Run `python text_from_pdfs.py` to generate document OCR results.")
         return
 
     df = pd.read_csv(results_file)
@@ -473,9 +473,37 @@ def main():
         st.write("No pages to show")
         return
 
-    # Page navigation
-    page = st.slider('Select Page', 1, n_pages, 1)
-    display_page(df, page)
+    # Basic Page navigation (simplified for article)
+    page = st.slider('Select Page', 1, n_pages, 1) # This is the primary navigation method
+    
+    # Display current page content
+    image_path = df.loc[page - 1, 'image_path']
+    extracted_text = df.loc[page - 1, 'extracted']
+    corrected_text = df.loc[page - 1, 'corrected']
+
+    output_dir = "output" # Assuming output_dir is defined
+
+    image = Image.open(image_path)
+    pre_path = get_preproc_path(image_path, output_dir)
+    pre_image = Image.open(pre_path) if os.path.exists(pre_path) else image
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.image(image, caption=f'Original Page {page}', use_column_width=True)
+    with col2:
+        st.image(pre_image, caption=f'Preprocessed Page {page}', use_column_width=True)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader("Extracted Text")
+        st.write(extracted_text)
+    with col2:
+        st.subheader("Corrected Text")
+        st.write(corrected_text)
+        if corrected_text and isinstance(corrected_text, str):
+            char_count = len(corrected_text)
+            word_count = len(corrected_text.split())
+            st.caption(f"{word_count} words, {char_count} characters")
 ```
 
 ### Document OCR Viewer Layout
@@ -495,308 +523,6 @@ This allows side-by-side comparison of each processing step:
 - **Preprocessed** - Verify that preprocessing improved text clarity
 - **Extracted** - Raw PyTesseract output showing any OCR errors
 - **Corrected** - GPT-5 corrected text showing improvements
-
-**Implementation:**
-
-```python
-def display_page(df, page_num):
-    """Display all processing stages for a single page"""
-
-    # Load page data
-    image_path = df.loc[page_num - 1, 'image_path']
-    extracted_text = df.loc[page_num - 1, 'extracted']
-    corrected_text = df.loc[page_num - 1, 'corrected']
-
-    # Load images
-    original_image = Image.open(image_path)
-    preprocessed_path = get_preproc_path(image_path, "output")
-    preprocessed_image = Image.open(preprocessed_path)
-
-    # Display images side-by-side
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.image(original_image, caption=f"Original Page {page_num}", use_column_width=True)
-
-    with col2:
-        st.image(preprocessed_image, caption=f"Preprocessed Page {page_num}", use_column_width=True)
-
-    # Display text results side-by-side
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.subheader("Extracted Text (Raw OCR)")
-        st.text_area("", extracted_text, height=400)
-
-    with col2:
-        st.subheader("Corrected Text (GPT-5)")
-        st.text_area("", corrected_text, height=400)
-        if corrected_text:
-            word_count = len(corrected_text.split())
-            char_count = len(corrected_text)
-            st.caption(f"{word_count} words, {char_count} characters")
-```
-
-This layout makes it easy to identify where OCR errors occurred and validate AI corrections.
-
-### Interactive Features
-
-The viewer provides several interactive capabilities beyond simple display:
-
-#### 1. Bounding Box Visualization
-
-Overlay detected text regions directly on images with confidence-based color coding:
-
-```python
-def visualize_text_regions(image, ocr_results):
-    """
-    Draw bounding boxes on image with confidence-based colors
-
-    Color coding:
-    - Green: High confidence (>90%)
-    - Yellow: Medium confidence (70-90%)
-    - Red: Low confidence (<70%)
-    """
-    overlay = image.copy()
-
-    for region in ocr_results:
-        x, y, w, h = region['bbox']
-        confidence = region['confidence']
-        text = region['text']
-
-        # Color based on confidence
-        if confidence > 0.9:
-            color = (0, 255, 0)  # Green
-        elif confidence > 0.7:
-            color = (255, 255, 0)  # Yellow
-        else:
-            color = (255, 0, 0)  # Red
-
-        # Draw rectangle
-        cv2.rectangle(overlay, (x, y), (x+w, y+h), color, 2)
-
-        # Add confidence score
-        label = f"{confidence:.2f}"
-        cv2.putText(
-            overlay,
-            label,
-            (x, y-5),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.5,
-            color,
-            2
-        )
-
-    return overlay
-```
-
-**In Streamlit:**
-
-```python
-# Add checkbox to toggle bounding boxes
-show_boxes = st.checkbox("Show text regions with confidence scores")
-
-if show_boxes:
-    # Generate visualization
-    annotated = visualize_text_regions(original_image, ocr_results)
-    st.image(annotated, caption="Text Regions with Confidence")
-```
-
-This helps identify which parts of the document need manual review.
-
-#### 2. Before/After Diff View
-
-Compare raw OCR output with AI-corrected text using a visual diff:
-
-```python
-def create_diff_view(text1, text2, label1="Raw OCR", label2="Corrected"):
-    """
-    Create HTML diff view showing differences between raw and corrected text
-    """
-    import difflib
-
-    # Generate HTML diff
-    diff = difflib.HtmlDiff().make_table(
-        text1.splitlines(),
-        text2.splitlines(),
-        fromlabel=label1,
-        tolabel=label2
-    )
-
-    return diff
-
-
-# In Streamlit
-st.subheader("Correction Comparison")
-
-col1, col2 = st.columns(2)
-with col1:
-    st.write("**Raw OCR Output**")
-    st.text_area("", extracted_text, height=300)
-
-with col2:
-    st.write("**AI-Corrected Text**")
-    st.text_area("", corrected_text, height=300)
-
-# Show diff
-if st.checkbox("Show differences"):
-    diff_html = create_diff_view(extracted_text, corrected_text)
-    st.components.v1.html(diff_html, height=400, scrolling=True)
-
-# Calculate and display metrics
-if ground_truth:
-    st.subheader("Accuracy Metrics")
-    cer_raw = calculate_cer(ground_truth, extracted_text)
-    cer_corrected = calculate_cer(ground_truth, corrected_text)
-
-    col1, col2 = st.columns(2)
-    with col1:
-        st.metric("Raw OCR CER", f"{cer_raw:.2%}")
-    with col2:
-        st.metric("Corrected CER", f"{cer_corrected:.2%}",
-                 delta=f"{(cer_raw-cer_corrected):.2%}",
-                 delta_color="inverse")
-```
-
-#### 3. Export Functionality
-
-Download results in various formats:
-
-```python
-def create_export_options(df, current_page):
-    """Provide export options for OCR results"""
-
-    st.subheader("Export Options")
-
-    # Single page export
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        # Export as TXT
-        txt_content = df.iloc[current_page-1]['corrected']
-        st.download_button(
-            label="Download as TXT",
-            data=txt_content,
-            file_name=f"page_{current_page}.txt",
-            mime="text/plain"
-        )
-
-    with col2:
-        # Export as Markdown
-        md_content = f"# Page {current_page}\n\n{txt_content}"
-        st.download_button(
-            label="Download as Markdown",
-            data=md_content,
-            file_name=f"page_{current_page}.md",
-            mime="text/markdown"
-        )
-
-    with col3:
-        # Export annotated image
-        if st.button("Download Annotated Image"):
-            # Generate annotated image with bounding boxes
-            annotated = visualize_text_regions(image, ocr_results)
-            img_bytes = cv2.imencode('.png', annotated)[1].tobytes()
-
-            st.download_button(
-                label="Save PNG",
-                data=img_bytes,
-                file_name=f"page_{current_page}_annotated.png",
-                mime="image/png"
-            )
-
-    # Bulk export
-    st.subheader("Bulk Export")
-
-    if st.button("Export All Pages"):
-        # Create ZIP file with all results
-        import zipfile
-        from io import BytesIO
-
-        zip_buffer = BytesIO()
-        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-            # Add text files
-            for idx, row in df.iterrows():
-                txt_content = row['corrected']
-                zip_file.writestr(f"page_{idx+1}.txt", txt_content)
-
-            # Add CSV with metadata
-            csv_content = df.to_csv(index=False)
-            zip_file.writestr("results.csv", csv_content)
-
-        st.download_button(
-            label="Download ZIP Archive",
-            data=zip_buffer.getvalue(),
-            file_name="ocr_results.zip",
-            mime="application/zip"
-        )
-```
-
-These interactive features make the viewer a production-ready tool for quality assurance and result validation.
-
-**Page navigation:**
-
-```python
-# Navigation buttons
-col1, col2, col3, col4, col5 = st.columns(5)
-
-with col1:
-    if st.button("First Page", disabled=page == 1):
-        page = 1
-        st.query_params['page'] = page
-
-with col2:
-    if st.button("Previous Page", disabled=page == 1):
-        page -= 1
-        st.query_params['page'] = page
-
-with col3:
-    st.write(f"Showing page {page} of {n_pages}")
-
-with col4:
-    if st.button("Next Page", disabled=page == n_pages):
-        page += 1
-        st.query_params['page'] = page
-
-with col5:
-    if st.button("Last Page", disabled=page == n_pages):
-        page = n_pages
-        st.query_params['page'] = page
-
-# Slider for direct page access
-if n_pages > 1:
-    page = st.slider('Select Page', 1, n_pages, page)
-```
-
-**Side-by-side comparison:**
-
-```python
-# Display images
-col1, col2 = st.columns(2)
-
-with col1:
-    st.image(original_image, caption=f'Original Page {page}', use_column_width=True)
-
-with col2:
-    st.image(preprocessed_image, caption=f'Preprocessed Page {page}', use_column_width=True)
-
-# Display text results
-col1, col2 = st.columns(2)
-
-with col1:
-    st.subheader("Extracted Text")
-    st.write(extracted_text)
-
-with col2:
-    st.subheader("Corrected Text")
-    st.write(corrected_text)
-
-    # Show statistics
-    if corrected_text:
-        char_count = len(corrected_text)
-        word_count = len(corrected_text.split())
-        st.caption(f"{word_count} words, {char_count} characters")
-```
 
 ### Running the Viewer
 
@@ -875,22 +601,18 @@ python benchmark.py \
 
 Based on testing with 5 pages of typed documents from the August Anton autobiography:
 
-| Method | CER (avg) | WER (avg) | Speed (CPU) | GPU Speedup | Cost |
-|--------|-----------|-----------|-------------|-------------|------|
-| Pytesseract | 0.015 | 0.056 | 3.79s/page | N/A | Free |
-| Pytesseract + GPT-5 | 1.698* | 1.722* | 75.91s/page | N/A | $0.0045/page |
-| TrOCR (base) | 0.983 | 0.999 | 0.65s/page | ~0.5s/page | Free |
-| TrOCR + GPT-5 | 0.983 | 0.998 | 13.99s/page | ~1.5s/page | $0.0045/page |
+| Method | CER (avg) | WER (avg) | Speed (CPU) | Cost |
+|--------|-----------|-----------|-------------|------|
+| Pytesseract | 0.015 | 0.056 | 3.79s/page | Free |
+| Pytesseract + GPT-5 | 1.698* | 1.722* | 75.91s/page | $0.0045/page |
 
 *Note: GPT-5 CER/WER appears high because GPT-5 performs editing/rewriting beyond OCR correction, improving readability but increasing distance from ground truth. On pages 4-5, GPT-5 achieved CER 0.28-0.45 when doing more focused correction.
 
 **Key findings:**
 
 - **Pytesseract excels on typed documents**: CER 0.015 (98.5% accuracy) on clean typed text
-- **TrOCR is not suitable for typed text**: Near 100% error rate (designed for handwriting)
 - **GPT-5 adds significant processing time**: 20x slower for Pytesseract, but cost remains low ($0.0045/page)
 - **GPT-5 behavior**: Performs editing/rewriting rather than pure OCR correction, which improves readability but increases CER/WER vs. ground truth
-- **GPU acceleration**: Provides 5-10x speedup for TrOCR (not tested on these documents)
 - **Cost**: Minimal even with LLM correction ($0.0045/page measured on 5 pages)
 
 ### When to Use Which Approach
@@ -898,12 +620,7 @@ Based on testing with 5 pages of typed documents from the August Anton autobiogr
 **Decision tree:**
 
 ```
-Is the text handwritten?
-├─ No → Use Pytesseract (faster, accurate for typed text)
-│
-└─ Yes → Is it from a photo or scan?
-    ├─ High-quality scan → Pytesseract + preprocessing may work
-    └─ Photo with angles/lighting issues → Use TrOCR
+Use Pytesseract for printed text.
 
 Should you use LLM correction?
 ├─ Production critical → Yes (minimal cost, significant improvement)
@@ -1020,12 +737,6 @@ text = pytesseract.image_to_string(image, lang='deu')  # German
 text = pytesseract.image_to_string(image, lang='fra')  # French
 ```
 
-**TrOCR multilingual models:**
-
-- `microsoft/trocr-base-printed` - English printed text
-- `microsoft/trocr-large-printed` - Multilingual printed
-- Community models for specific languages on HuggingFace
-
 ### Vision-Assisted Correction with GPT-5
 
 Leverage GPT-5's vision capabilities (if available) for context-aware correction:
@@ -1098,166 +809,21 @@ def dewarp_page(image_path, output_path):
     pass
 ```
 
-### Real-Time OCR with Camera Feed
-
-For applications requiring live OCR (mobile apps, document scanners), integrate camera feeds with Streamlit:
-
-```python
-import streamlit as st
-from streamlit_webrtc import webrtc_streamer
-import av
-import cv2
-from queue import Queue
-
-class OCRVideoProcessor:
-    """Process video frames for real-time OCR"""
-
-    def __init__(self):
-        self.ocr_model = TrOCRModel()  # Initialize once
-        self.frame_queue = Queue(maxsize=1)  # Limit queue size
-        self.result_text = ""
-
-    def recv(self, frame):
-        """Process incoming video frame"""
-        img = frame.to_ndarray(format="bgr24")
-
-        # Only process every Nth frame to avoid overload
-        if self.frame_queue.empty():
-            self.frame_queue.put(img)
-
-        # Draw bounding box indicating capture area
-        h, w = img.shape[:2]
-        cv2.rectangle(
-            img,
-            (w//4, h//4),
-            (3*w//4, 3*h//4),
-            (0, 255, 0),
-            2
-        )
-
-        # Overlay last OCR result
-        if self.result_text:
-            cv2.putText(
-                img,
-                self.result_text,
-                (10, 30),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.7,
-                (0, 255, 0),
-                2
-            )
-
-        return av.VideoFrame.from_ndarray(img, format="bgr24")
-
-
-# Streamlit app
-st.title("Real-Time Handwriting OCR")
-
-# Camera settings
-ctx = webrtc_streamer(
-    key="ocr-camera",
-    video_processor_factory=OCRVideoProcessor,
-    rtc_configuration={
-        "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
-    }
-)
-
-# Processing thread
-if ctx.video_processor:
-    processor = ctx.video_processor
-
-    # Capture button
-    if st.button("Capture and Process"):
-        if not processor.frame_queue.empty():
-            frame = processor.frame_queue.get()
-
-            # Crop to capture area
-            h, w = frame.shape[:2]
-            cropped = frame[h//4:3*h//4, w//4:3*w//4]
-
-            # Run OCR
-            with st.spinner("Processing..."):
-                result = processor.ocr_model.extract_text(cropped)
-                processor.result_text = result['text']
-
-            st.success("OCR Complete!")
-            st.write(result['text'])
-```
-
-**Mobile App Considerations:**
-
-For production mobile OCR apps:
-
-1. **Frame rate optimization** - Process every 5-10 frames, not every frame
-2. **Auto-capture** - Detect when text is in focus and stable
-3. **Edge detection** - Guide user to position document correctly
-4. **Lighting feedback** - Warn if lighting is too dark/bright
-5. **Model optimization** - Use mobile-optimized models (TFLite, ONNX)
-
-**Example auto-capture logic:**
-
-```python
-def should_capture(frame, previous_frame, stability_threshold=0.95):
-    """
-    Determine if frame is stable enough for OCR
-
-    Checks:
-    - Image similarity with previous frame (motion detection)
-    - Sharpness (focus detection)
-    - Lighting (exposure detection)
-    """
-    # Check stability (no motion)
-    if previous_frame is not None:
-        similarity = cv2.matchTemplate(
-            frame,
-            previous_frame,
-            cv2.TM_CCOEFF_NORMED
-        )[0][0]
-
-        if similarity < stability_threshold:
-            return False, "Hold steady..."
-
-    # Check sharpness (focus)
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    laplacian_var = cv2.Laplacian(gray, cv2.CV_64F).var()
-
-    if laplacian_var < 100:  # Threshold for blur detection
-        return False, "Image blurry, focus camera..."
-
-    # Check lighting
-    mean_brightness = gray.mean()
-    if mean_brightness < 50:
-        return False, "Too dark, add light..."
-    elif mean_brightness > 200:
-        return False, "Too bright, reduce light..."
-
-    return True, "Ready to capture!"
-```
-
-**Performance tips:**
-
-- Run OCR in background thread to keep UI responsive
-- Cache model in memory (don't reload per frame)
-- Use GPU on mobile devices that support it
-- Consider cloud OCR API for resource-constrained devices
-
 ---
 
 ## Conclusion
 
-This OCR framework provides a complete, production-ready solution for both typed documents and handwritten text.
+This OCR framework provides a complete, production-ready solution for typed documents.
 
 ### Key Takeaways
 
 The essential insights from building this OCR system:
 
-- **No single OCR solution fits all use cases** - Traditional OCR (Pytesseract) excels at typed documents, while transformer models (TrOCR) are superior for handwriting. Choose based on your input type.
+- **No single OCR solution fits all use cases** - Traditional OCR (Pytesseract) excels at typed documents.
 
 - **Preprocessing impact varies by document quality** - Image quality directly impacts accuracy. For clean typed documents, preprocessing provides minimal benefit. For noisy, scanned, or aged documents, preprocessing (grayscale conversion, noise reduction, thresholding) can provide more significant improvements.
 
-- **Modern vision models excel at handwriting and complex layouts** - TrOCR's transformer architecture understands context, making it significantly better than rule-based OCR for cursive and varied handwriting styles.
-
-- **LLM correction improves readability and fixes errors** - GPT-5 performs editing/rewriting beyond pure OCR correction, improving readability and fixing errors at minimal cost ($0.0045/page measured). Note: On clean typed documents, Pytesseract already achieves 98.5% accuracy (CER 0.015), so GPT-5 correction may not be necessary. For noisy documents or handwriting, GPT-5 correction provides more value.
+- **LLM correction improves readability and fixes errors** - GPT-5 performs editing/rewriting beyond pure OCR correction, improving readability and fixing errors at minimal cost ($0.0045/page measured). Note: On clean typed documents, Pytesseract already achieves 98.5% accuracy (CER 0.015), so GPT-5 correction may not be necessary. For noisy documents, GPT-5 correction provides more value.
 
 - **Interactive tools help validate and refine results** - A good viewer isn't just nice to have—it's essential for quality assurance, debugging preprocessing pipelines, and building confidence in production systems.
 
@@ -1269,7 +835,7 @@ The essential insights from building this OCR system:
 
 What makes this framework production-ready:
 
-- **Dual pipelines** - Right tool for each job (Pytesseract for documents, TrOCR for handwriting)
+- **Single pipeline** - Right tool for the job (Pytesseract for documents)
 - **AI correction** - Significant accuracy improvements at minimal cost
 - **Interactive validation** - Streamlit viewer for quality assurance
 - **Production-ready patterns** - Batch processing, error handling, monitoring
@@ -1281,7 +847,6 @@ What makes this framework production-ready:
 Quick reference guide:
 
 - **Pytesseract** - Clean typed documents, batch processing, speed matters, no GPU available
-- **TrOCR** - Handwritten notes, cursive text, photo inputs, GPU available
 - **LLM correction** - Production applications, quality-critical workflows, can afford ~$0.003-0.005/page (GPT-5)
 - **Unified viewer** - Development, QA, client demos, validating results
 - **Markdown formatting** - Creating publishable documents, generating structured output
@@ -1291,7 +856,7 @@ Quick reference guide:
 
 To implement this in your own projects:
 
-1. **Experiment** - Try both pipelines on your documents to understand their strengths
+1. **Experiment** - Try the pipeline on your documents to understand its strengths
 2. **Benchmark** - Measure accuracy on your specific use case with ground truth data
 3. **Optimize** - Fine-tune preprocessing parameters for your document types
 4. **Scale** - Implement parallel processing for production volumes (see Part IV)
@@ -1303,19 +868,9 @@ To implement this in your own projects:
 
 #### Academic Papers
 
-**TrOCR: Transformer-based Optical Character Recognition**
+**GPT-5 System Card**
 
-- Li, M., Lv, T., Chen, J., Cui, L., Lu, Y., Florencio, D., Zhang, C., Li, Z., & Wei, F. (2023)
-- *Proceedings of the AAAI Conference on Artificial Intelligence, 37*(11), 13094-13102
-- [https://arxiv.org/abs/2109.10282](https://arxiv.org/abs/2109.10282)
-- State-of-the-art results on handwritten text with transformer architecture
-
-**GPT-4o System Card**
-
-- OpenAI. (2024)
-- *arXiv preprint arXiv:2410.21276*
-- [https://arxiv.org/abs/2410.21276](https://arxiv.org/abs/2410.21276)
-- Multimodal model capabilities including text and vision
+OpenAI. (2025). **GPT-5 System Card**. <https://openai.com/index/gpt-5-system-card/>
 
 **An Overview of the Tesseract OCR Engine**
 
@@ -1324,30 +879,17 @@ To implement this in your own projects:
 - IEEE Computer Society
 - Foundation of open-source OCR technology
 
-**IAM Handwriting Database**
-
-- Marti, U.-V., & Bunke, H. (2002)
-- *International Journal on Document Analysis and Recognition, 5*(2-3), 39-46
-- Standard benchmark for handwriting recognition research
-
 #### Documentation and Tools
 
 **Official Documentation:**
 
 - [Tesseract OCR Documentation](https://tesseract-ocr.github.io/) - Installation, usage, language packs
-- [TrOCR on HuggingFace](https://huggingface.co/docs/transformers/model_doc/trocr) - Model documentation and examples
 - [OpenAI API Documentation](https://platform.openai.com/docs) - GPT-5 usage and pricing ([Pricing Page](https://platform.openai.com/docs/pricing))
 - [OpenCV Documentation](https://docs.opencv.org/) - Image processing functions
 - [Streamlit Documentation](https://docs.streamlit.io/) - Building interactive apps
 
-**Model Repositories:**
-
-- [TrOCR Models on HuggingFace](https://huggingface.co/models?search=trocr) - Pre-trained models
-- [Tesseract Language Data](https://github.com/tesseract-ocr/tessdata) - Language packs for Tesseract
-
 **Libraries and Frameworks:**
 
-- [HuggingFace Transformers](https://huggingface.co/docs/transformers/) - Transformer model library
 - [OpenCV](https://opencv.org/) - Computer vision and image processing
 - [Pillow (PIL)](https://pillow.readthedocs.io/) - Python imaging library
 - [Pandas](https://pandas.pydata.org/) - Data manipulation and analysis
@@ -1363,7 +905,6 @@ To implement this in your own projects:
 
 - [Papers with Code - OCR](https://paperswithcode.com/task/optical-character-recognition) - Latest research
 - [Google Dataset Search](https://datasetsearch.research.google.com/) - Find OCR datasets
-- [IAM Database](http://www.fki.inf.unibe.ch/databases/iam-handwriting-database) - Handwriting benchmark
 
 **Verified Specifications and Benchmarks:**
 
@@ -1373,7 +914,7 @@ To implement this in your own projects:
 
 This article's complete source code includes:
 
-- Full implementation of both OCR pipelines
+- Full implementation of the OCR pipeline
 - Streamlit viewer with all interactive features
 - Benchmark tools with CER/WER metrics
 - Sample images and ground truth data
@@ -1383,24 +924,21 @@ This article's complete source code includes:
 
 ### About the Author
 
-This framework was built to digitize historical family documents, specifically the autobiography of August Anton (1830-1911). The challenges of aged paper, faded ink, and varied handwriting quality drove the development of robust preprocessing and dual OCR pipelines.
+This framework was built to digitize historical family documents, specifically the autobiography of August Anton (1830-1911). The challenges of aged paper, faded ink, and varied handwriting quality drove the development of robust preprocessing and the OCR pipeline.
 
-The project demonstrates that production-quality OCR doesn't require expensive commercial solutions. Open-source tools like Tesseract, TrOCR, and GPT-5 can deliver excellent results when properly integrated.
+The project demonstrates that production-quality OCR doesn't require expensive commercial solutions. Open-source tools like Tesseract and GPT-5 can deliver excellent results when properly integrated.
 
 ### Acknowledgments
 
 **Technologies:**
 
 - Tesseract OCR (Google/contributors)
-- TrOCR (Microsoft Research)
 - GPT-5 (OpenAI)
-- HuggingFace Transformers
 - OpenCV
 - Streamlit
 
 **Research papers:**
 
-- Li, M., et al. (2023). TrOCR: Transformer-based Optical Character Recognition with Pre-trained Models. AAAI 2023.
 - OpenAI. (2024). GPT-5 API Documentation.
 - Smith, R. (2007). An Overview of the Tesseract OCR Engine. ICDAR 2007.
 
@@ -1491,17 +1029,14 @@ python -c "from dotenv import load_dotenv; import os; load_dotenv(); print('API 
 # 1. Process document OCR
 python text_from_pdfs.py
 
-# 2. Process handwriting OCR
-python handwriting_ocr.py --input handwriting_images/
-
-# 3. View results
+# 2. View results
 streamlit run viewer_app.py
 
-# 4. Run benchmarks
+# 3. Run benchmarks
 python benchmark.py \
   --input test_images/ \
   --ground-truth ground_truth.json \
-  --methods pytesseract trocr
+  --methods pytesseract
 ```
 
 ### Troubleshooting
@@ -1513,16 +1048,6 @@ python benchmark.py \
 tesseract --version
 
 # If not found, check PATH or reinstall
-```
-
-**"CUDA out of memory":**
-
-```bash
-# Use CPU instead
-python handwriting_ocr.py --input images/ --no-gpu
-
-# Or reduce batch size
-python handwriting_ocr.py --input images/ --max 10
 ```
 
 **"OpenAI API error":**
