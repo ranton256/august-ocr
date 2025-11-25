@@ -13,6 +13,7 @@ This project demonstrates a complete pipeline for digitizing historical printed 
 - **Production-ready** - Batch processing, interactive viewer, and comprehensive documentation
 
 The project includes:
+
 - Image preprocessing pipeline optimized for aged documents
 - Batch processing capabilities for multi-page documents
 - Interactive [Streamlit](https://streamlit.io) viewer for result validation
@@ -85,12 +86,14 @@ python text_from_pdfs.py [--max N]
 ```
 
 The script processes images listed in `input_file_list.txt` and performs:
+
 1. Image preprocessing (grayscale → noise reduction → thresholding)
 2. Region-based text extraction with PyTesseract
 3. GPT-5 error correction
 4. Output generation
 
 Results are saved to:
+
 - `output/results.csv` - Processing results with all stages
 - `output/extracted.txt` - Raw OCR text
 - `output/corrected.txt` - AI-corrected text
@@ -112,6 +115,7 @@ python benchmark.py --input images/ \
 ```
 
 The benchmark measures:
+
 - **Character Error Rate (CER)** - Percentage of characters incorrectly recognized
 - **Word Error Rate (WER)** - Percentage of words with errors
 - **Processing time** - Seconds per page
@@ -125,6 +129,7 @@ streamlit run viewer_app.py
 ```
 
 The app allows you to:
+
 - View original and preprocessed images side-by-side
 - Compare raw OCR output with AI-corrected text
 - Navigate through pages with buttons or slider

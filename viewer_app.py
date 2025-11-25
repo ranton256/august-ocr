@@ -16,8 +16,6 @@ st.set_page_config(
 def main():
     st.title("OCR Comparison App")
 
-    # Default to Document OCR mode
-    mode = "Document OCR (Pytesseract)"
     results_file = "output/results.csv"
     description = """This shows traditional OCR using PyTesseract, Pillow, and opencv-python.
 It performs preprocessing steps to improve results, then uses OpenAI's GPT-5 to correct the OCR output.
