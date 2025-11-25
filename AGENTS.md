@@ -4,12 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Python OCR (Optical Character Recognition) project demonstrating two complementary approaches:
-
-1. **Document OCR**: Traditional OCR using PyTesseract for scanned documents and PDFs
-2. **Handwriting OCR**: Transformer-based OCR using Microsoft's TrOCR for handwritten notes
-
-Both approaches use OpenAI's GPT-5 model for intelligent error correction to improve accuracy.
+This is a Python OCR (Optical Character Recognition) project demonstrating traditional OCR using PyTesseract for scanned documents and PDFs, combined with OpenAI's GPT-5 model for intelligent error correction to improve accuracy.
 
 The project includes benchmarking tools to compare methods and an interactive Streamlit viewer for visualizing results.
 
@@ -40,12 +35,9 @@ echo "OPENAI_API_KEY=your-key-here" > .env
 # Document OCR (pytesseract)
 python text_from_pdfs.py [--max N]
 
-# Handwriting OCR (TrOCR)
-python handwriting_ocr.py --input handwriting_images/ [--perspective-correction] [--llm-correction]
-
 # Benchmarking
-python benchmark.py --input images/ --methods pytesseract trocr --create-template
-python benchmark.py --input images/ --methods pytesseract trocr pytesseract_gpt5 trocr_gpt5
+python benchmark.py --input images/ --methods pytesseract pytesseract_no_preprocess pytesseract_gpt5 --create-template
+python benchmark.py --input images/ --methods pytesseract pytesseract_no_preprocess pytesseract_gpt5
 
 # Interactive viewer
 streamlit run viewer_app.py
@@ -55,7 +47,7 @@ streamlit run viewer_app.py
 
 ### Core Pipeline Pattern
 
-Both OCR approaches follow a similar multi-stage pipeline:
+The OCR pipeline follows a multi-stage process:
 
 1. **Image Preprocessing** → 2. **Text Extraction** → 3. **LLM Correction** → 4. **Output Generation**
 
@@ -68,19 +60,13 @@ This separation allows easy comparison between methods and optional correction.
   - `extract_text()`: Region-based text extraction using morphological operations
   - `ask_the_english_prof()`: GPT-5 correction for OCR errors
 
-- **`handwriting_ocr.py`**: Handwriting OCR pipeline (TrOCR)
-  - `TrOCRModel` class: HuggingFace transformer model wrapper
-  - `perspective_correction()`: Correct angled photos using perspective transform
-  - `correct_with_llm()`: GPT-5 correction tailored for handwriting errors
-
 - **`benchmark.py`**: OCR method comparison and accuracy measurement
   - `OCRBenchmark` class: Unified benchmarking framework
   - Ground truth loading from `ground_truth/{image_basename}_ref.txt` files
   - Calculates CER (Character Error Rate) and WER (Word Error Rate)
-  - Supports methods: `pytesseract`, `pytesseract_no_preprocess`, `trocr`, `pytesseract_gpt5`, `trocr_gpt5`
+  - Supports methods: `pytesseract`, `pytesseract_no_preprocess`, `pytesseract_gpt5`
 
 - **`viewer_app.py`**: Streamlit app for interactive result viewing
-  - Two modes: Document OCR vs. Handwriting OCR
   - Displays: original image, preprocessed image, extracted text, corrected text
   - Navigation controls and page slider
 
@@ -92,12 +78,7 @@ This separation allows easy comparison between methods and optional correction.
 **Document OCR preprocessing** (for typed/printed text):
 - Aggressive preprocessing: grayscale → median blur → binary threshold
 - Region-based extraction using morphological dilation to find text blocks
-- Sorts regions by Y-coordinate to preserve reading order
-
-**Handwriting OCR preprocessing** (for photos):
-- Light preprocessing: CLAHE for contrast enhancement
-- Optional perspective correction for angled photos
-- TrOCR model handles most preprocessing internally
+- Sorts regions by Y-coordinate (then X) to preserve reading order
 
 ### LLM Correction Strategy
 
@@ -107,7 +88,6 @@ Two-stage correction approach:
 
 The prompts are carefully crafted to preserve original content while fixing errors:
 - Document OCR: "Correct any typos caused by bad OCR..."
-- Handwriting OCR: Specialized prompt addressing handwriting-specific errors (similar letters, cursive word boundaries)
 
 ### Data Flow
 
@@ -120,7 +100,7 @@ Extraction: raw OCR text
   ↓
 Correction: GPT-5 corrected text
   ↓
-Output: results.csv (or handwriting_results.csv)
+Output: results.csv
         extracted.txt
         corrected.txt
 ```
@@ -136,8 +116,7 @@ The benchmark compares methods using Levenshtein distance for CER/WER calculatio
 
 ## Important Configuration Details
 
-- **OpenAI Model**: Uses `gpt-5` model (defined in `text_from_pdfs.py:18` and `handwriting_ocr.py:355`)
-- **TrOCR Models**: Default is `microsoft/trocr-base-handwritten`, can also use `microsoft/trocr-large-handwritten`
+- **OpenAI Model**: Uses `gpt-5` model (defined in `text_from_pdfs.py:18`)
 - **Output Directory**: All outputs go to `output/` directory (created automatically)
 - **Morphological Kernel**: 50×40 rectangle for document region detection (`text_from_pdfs.py:24`)
 
@@ -145,9 +124,6 @@ The benchmark compares methods using Levenshtein distance for CER/WER calculatio
 
 1. **Missing system dependencies**: pytesseract requires tesseract to be installed at system level
 2. **Ground truth format**: Benchmark now uses individual `*_ref.txt` files, not a central JSON
-3. **Model download**: First run of TrOCR downloads ~1GB model from HuggingFace
-4. **GPU vs CPU**: TrOCR can run on CPU but GPU is much faster (`--no-gpu` flag available)
-5. **Image paths**: The viewer app uses different path conventions for document vs handwriting results
 
 ## Testing Approach
 

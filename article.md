@@ -584,15 +584,14 @@ def calculate_wer(reference, hypothesis):
 
 ```bash
 # Create ground truth template
-python benchmark.py --input handwriting_images/ --create-template
+python benchmark.py --input images/ --create-template
 
-# Edit ground_truth.json to add correct text for each image
+# Edit ground_truth/*_ref.txt files to add correct text for each image
 
-# Run benchmark comparing both methods
+# Run benchmark comparing different methods
 python benchmark.py \
-  --input handwriting_images/ \
-  --ground-truth ground_truth.json \
-  --methods pytesseract trocr \
+  --input images/ \
+  --methods pytesseract pytesseract_no_preprocess pytesseract_gpt5 \
   --output benchmark_results.csv \
   --report benchmark_report.md
 ```
@@ -924,7 +923,7 @@ This article's complete source code includes:
 
 ### About the Author
 
-This framework was built to digitize historical family documents, specifically the autobiography of August Anton (1830-1911). The challenges of aged paper, faded ink, and varied handwriting quality drove the development of robust preprocessing and the OCR pipeline.
+This framework was built to digitize historical family documents, specifically the autobiography of August Anton (1830-1911).
 
 The project demonstrates that production-quality OCR doesn't require expensive commercial solutions. Open-source tools like Tesseract and GPT-5 can deliver excellent results when properly integrated.
 
@@ -939,7 +938,7 @@ The project demonstrates that production-quality OCR doesn't require expensive c
 
 **Research papers:**
 
-- OpenAI. (2024). GPT-5 API Documentation.
+- OpenAI. (2025). GPT-5 API Documentation.
 - Smith, R. (2007). An Overview of the Tesseract OCR Engine. ICDAR 2007.
 
 ---
