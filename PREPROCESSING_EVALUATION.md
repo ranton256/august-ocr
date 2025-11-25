@@ -7,6 +7,7 @@
 ## Methodology
 
 Compared Pytesseract OCR with and without preprocessing on 5 pages with ground truth:
+
 - **With preprocessing**: Grayscale conversion → noise removal (median blur) → thresholding (OTSU) → region-based extraction
 - **Without preprocessing**: Grayscale for region detection only → region-based extraction (no thresholding/noise removal)
 
@@ -36,7 +37,7 @@ Both methods use the same region-based extraction approach for fair comparison.
 
 1. **Minimal overall impact**: Preprocessing improves CER by only 0.07 percentage points and WER by 0.25 percentage points on average.
 
-2. **Inconsistent per-page results**: 
+2. **Inconsistent per-page results**:
    - Preprocessing helps on pages 2 and 4 (IMG_8479, IMG_8481)
    - Preprocessing slightly hurts on pages 3 and 5 (IMG_8480, IMG_8482)
    - No difference on page 1 (IMG_8478)
@@ -53,7 +54,8 @@ Both methods use the same region-based extraction approach for fair comparison.
 
 **For these typed documents, preprocessing provides minimal benefit** (0.07-0.25pp improvement), not the claimed 10-20%. The documents are already clean enough that preprocessing doesn't significantly improve OCR accuracy.
 
-**Recommendation**: 
+**Recommendation**:
+
 - For clean typed documents: Preprocessing may not be worth the extra processing time
 - For noisy/scanned/aged documents: Preprocessing likely provides more benefit (needs testing)
 - The 10-20% improvement claim should be qualified or removed for clean typed documents
@@ -63,4 +65,3 @@ Both methods use the same region-based extraction approach for fair comparison.
 - Benchmark results: `benchmark_preprocessing_comparison.csv`
 - Report: `benchmark_preprocessing_comparison.md`
 - Ground truth: 5 pages (IMG_8478 through IMG_8482)
-
