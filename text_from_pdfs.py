@@ -17,11 +17,22 @@ from dotenv import load_dotenv
 
 MODEL = "gpt-5"
 
-SYSTEM_PROMPT = "You are a helpful assistant who is an expert on the English language, skilled in vocabulary, " \
-                "pronunciation, and grammar. "
-USER_PROMPT = "Correct any typos caused by bad OCR in this text, using common sense reasoning, responding only with " \
-              "the corrected text: "
-RECT_SIZE = (50, 40)
+SYSTEM_PROMPT = "You are an expert at correcting OCR errors in scanned documents. Your task is to fix OCR mistakes while preserving the original text structure, formatting, and meaning exactly as written."
+USER_PROMPT = """The following text was extracted from a scanned document using OCR. It contains OCR errors that need to be corrected.
+
+IMPORTANT INSTRUCTIONS:
+- Fix ONLY OCR errors (misspellings, character misrecognitions, punctuation mistakes)
+- Preserve the EXACT original structure, line breaks, spacing, and formatting
+- Do NOT rewrite, reformat, or improve the text
+- Do NOT add explanations, suggestions, or commentary
+- Do NOT change the writing style or voice
+- Return ONLY the corrected text, nothing else
+
+OCR text to correct:
+"""
+RECT_SIZE = (50, 40)  # TODO: this seems unused.
+MIN_BBOX_WIDTH = 30  # Minimum width for a bounding box to be considered
+MIN_BBOX_HEIGHT = 30  # Minimum height for a bounding box to be considered
 
 
 def process_pdf(path, output_dir):
@@ -73,18 +84,38 @@ def extract_text(img):
     cnt_list=[]
     for cnt in contours:
         x, y, w, h = cv2.boundingRect(cnt)
+        
+        # Skip bounding boxes that are too small (likely noise)
+        if w < MIN_BBOX_WIDTH or h < MIN_BBOX_HEIGHT:
+            continue
+            
         print(f"Extracting text from bbox at {x}, {y} size {w} by {h}", end="")
         rect = cv2.rectangle(im2, (x, y), (x + w, y + h), (0, 255, 0), 2)
         cv2.circle(im2,(x,y),8,(255,255,0),8)
-        cropped = im2[y:y + h, x:x + w]
-
-        text = pytesseract.image_to_string(cropped)
-        text = text.strip()
-        if text:
-            print(f" --> {text}")
-            cnt_list.append((x,y,text))
+        # Crop from original preprocessed image, not the one with drawings
+        img_h, img_w = img.shape[:2]
+        # Ensure bounding box is within image bounds
+        x = max(0, x)
+        y = max(0, y)
+        w = min(w, img_w - x)
+        h = min(h, img_h - y)
+        if w > 0 and h > 0:
+            cropped = img[y:y + h, x:x + w]
+            # Use Tesseract with better config for small text regions
+            # PSM 7 = Treat image as a single text line, PSM 8 = Single word
+            # PSM 6 = Uniform block of text (default)
+            config = '--psm 6'
+            if w < 100 or h < 50:
+                config = '--psm 8'  # Single word for small regions
+            text = pytesseract.image_to_string(cropped, config=config)
+            text = text.strip()
+            if text:
+                print(f" --> {text}")
+                cnt_list.append((x,y,text))
+            else:
+                print(" --> (nil)")
         else:
-            print(" --> (nil)")
+            print(" --> (nil) [invalid bbox]")
     # Sort by y then x position to keep text in correct order.
     sorted_list = sorted(cnt_list, key=lambda c: (c[1], c[0])) 
     # Return as text paragraphs
@@ -103,10 +134,20 @@ def extract_text(img):
     return result
 
 
-def ask_the_english_prof(client, user_query):
+def ask_the_english_prof(client, text):
+    """
+    Apply GPT-5 correction to OCR text with prompt designed to preserve structure.
+    
+    Args:
+        client: OpenAI client
+        text: OCR text to correct
+        
+    Returns:
+        Corrected text
+    """
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": user_query}
+        {"role": "user", "content": USER_PROMPT + text}
     ]
     completion = client.chat.completions.create(model=MODEL, messages=messages)
     return completion.choices[0].message.content
@@ -162,8 +203,7 @@ def perform_ocr_on_images(files, client, output_dir):
     corrected_pages = []
     for pi, page in enumerate(pages):
         print(f"Correcting {pi+1}/{len(pages)}")
-        prompt = USER_PROMPT + page
-        corrected = ask_the_english_prof(client, prompt)
+        corrected = ask_the_english_prof(client, page)
         corrected_pages.append(corrected)
 
     print(f"counts: files: {len(files)}, pages:{len(pages)}, corrected:{len(corrected_pages)}")
