@@ -17,6 +17,10 @@ The system is production-ready, handling batch processing, performance benchmark
 
 This pipeline was developed to digitize a 30-page printed autobiography by August Anton (1830-1911), my great-great-grandfather. The documents present typical historical OCR challenges: aged paper, faded ink, and photocopied artifacts. Successfully processing these 30 pages shaped every design decision in this project.
 
+My late uncle gave myself and others a printed copy of this work many years ago, and I read it and filed it away, but wanted to preserve it in digital form for future generations so it ended up becoming the basis of this project.
+
+I did not have any proper photography setup for capturing the images, so I left it as more of a challenge for the prepreocessing and OCR to sort out the iPhone pictures I took of the pages.
+
 ### What You'll Learn
 
 - How to build robust image preprocessing pipelines for aged documents
@@ -303,6 +307,7 @@ with open(os.path.join(output_dir, 'corrected.txt'), 'w') as f:
 **⚠️ Important: Prompt Sensitivity**
 
 LLM correction results are highly sensitive to the prompt design. The prompt shown above has been carefully tuned to:
+
 - Preserve document structure and formatting
 - Fix OCR errors without rewriting or improving text
 - Maintain original meaning and style
@@ -310,6 +315,7 @@ LLM correction results are highly sensitive to the prompt design. The prompt sho
 Testing showed that a less specific prompt (e.g., "correct typos using common sense") can cause GPT-5 to over-edit, resulting in higher error rates than raw OCR. The improved prompt achieves CER 0.079 vs. 1.209 with a vague prompt—a 93% reduction in errors.
 
 When implementing LLM correction, always:
+
 1. Test your prompt on sample documents with ground truth
 2. Measure CER/WER to validate prompt effectiveness
 3. Iterate on prompt design based on actual results
