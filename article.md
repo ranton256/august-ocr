@@ -38,6 +38,42 @@ I did not have any proper photography setup for capturing the images, so I left 
 
 ### Measured Performance
 
+#### Introducing OCR Accuracy Metrics
+
+To evaluate OCR performance objectively, we use two standard metrics that measure accuracy at different levels:
+
+**Character Error Rate (CER)** measures accuracy at the character level. It's calculated as the minimum number of character-level edits (substitutions, deletions, and insertions) needed to transform the OCR output into the ground truth, divided by the total number of characters in the reference text:
+
+```text
+CER = (substitutions + deletions + insertions) / total characters in reference
+```
+
+- **CER = 0.0**: Perfect match (100% accuracy)
+- **CER = 0.01**: 99% accuracy (1 error per 100 characters)
+- **CER = 1.0**: Complete mismatch (0% accuracy)
+
+CER is ideal for measuring OCR quality because it captures all types of errors—misspelled words, missing characters, extra characters, and punctuation mistakes. For example, if OCR reads "hel1o" instead of "hello", that's one substitution error.
+
+**Word Error Rate (WER)** measures accuracy at the word level. It's calculated similarly but operates on words instead of characters:
+
+```text
+WER = (word substitutions + word deletions + word insertions) / total words in reference
+```
+
+- **WER = 0.0**: Perfect match (all words correct)
+- **WER = 0.1**: 90% of words are correct
+- **WER = 1.0**: No words match
+
+WER is useful for understanding readability and practical usability. A document with low CER but high WER might have many small character errors that don't affect word recognition, while high WER indicates significant word-level mistakes that impact comprehension.
+
+**Why both metrics?** CER provides fine-grained accuracy measurement, while WER reflects real-world readability. For production OCR systems, both metrics together give a complete picture:
+
+- **Low CER + Low WER**: Excellent quality, ready for production
+- **Low CER + High WER**: Many small errors that don't break words (may still be readable)
+- **High CER + High WER**: Poor quality, needs preprocessing or different OCR approach
+
+Both metrics use the Levenshtein distance algorithm to find the minimum edit distance between the OCR output and ground truth text.
+
 Results from processing the August Anton documents (5-page benchmark):
 
 | Approach | Character Error Rate (CER) | Processing Time | API Cost |
@@ -101,7 +137,7 @@ def preprocess_image(img):
     return thresh
 ```
 
-**Why these specific techniques?**
+#### Why these specific techniques?
 
 1. **Grayscale conversion** - Reduces dimensionality while preserving text features. Color adds complexity without improving text recognition.
 
@@ -170,7 +206,7 @@ def extract_text(img):
     return ''.join(all_text)
 ```
 
-**Key insights:**
+#### Key insights:
 
 - **Morphological dilation** connects nearby characters into coherent regions. The (50, 40) kernel size handles typical text spacing.
 - **Y-coordinate sorting** preserves reading order, critical for multi-column layouts.
@@ -296,7 +332,7 @@ with open(os.path.join(output_dir, 'corrected.txt'), 'w') as f:
     f.write('\n\n'.join(corrected_texts))
 ```
 
-**Cost considerations:**
+#### Cost considerations:
 
 - GPT-5 API pricing: $1.25 per 1M input tokens, $10.00 per 1M output tokens ([OpenAI Pricing](https://platform.openai.com/docs/pricing))
 - Typical OCR correction: $0.0045 per page (measured on 5 pages, varies with page length)
@@ -304,7 +340,7 @@ with open(os.path.join(output_dir, 'corrected.txt'), 'w') as f:
 - Significantly cheaper than manual correction
 - Can be selectively applied to pages with low confidence
 
-**⚠️ Important: Prompt Sensitivity**
+### ⚠️ Important: Prompt Sensitivity
 
 LLM correction results are highly sensitive to the prompt design. The prompt shown above has been carefully tuned to:
 
@@ -323,7 +359,7 @@ When implementing LLM correction, always:
 
 ### Running the Document OCR Pipeline
 
-**Setup:**
+#### Setup:
 
 ```bash
 # Install system dependencies
@@ -339,7 +375,7 @@ pip install -r requirements.txt
 echo "OPENAI_API_KEY=your-key-here" > .env
 ```
 
-**Processing documents:**
+#### Processing documents:
 
 ```bash
 # Process all images listed in input_file_list.txt
@@ -349,7 +385,7 @@ python text_from_pdfs.py
 python text_from_pdfs.py --max 5
 ```
 
-**Outputs:**
+#### Outputs:
 
 - `output/results.csv` - Processing results and metadata
 - `output/extracted.txt` - Raw OCR text
@@ -360,7 +396,7 @@ python text_from_pdfs.py --max 5
 
 After OCR correction, we have accurate plain text. The final step transforms this into well-structured Markdown documents using a second AI pass.
 
-**Why a separate formatting step?**
+#### Why a separate formatting step?
 
 - Separates concerns: correction vs. formatting
 - Allows different models/prompts for each task
@@ -425,13 +461,13 @@ def main():
     print("Finished. Output saved to output/pages.md")
 ```
 
-**Key parameters:**
+#### Key parameters:
 
 - `top_p=0.01` - Forces deterministic output, ensuring consistent formatting across runs
 - Focused prompt - Adds structure without changing content
 - Batch processing - Handles entire documents efficiently
 
-**Running markdown generation:**
+#### Running markdown generation:
 
 ```bash
 # Process all pages
@@ -441,7 +477,7 @@ python make_md.py --file output/results.csv
 python make_md.py --file output/results.csv --max 10
 ```
 
-**Optional: PDF Generation**
+#### Optional: PDF Generation
 
 Convert the generated Markdown to PDF using Pandoc:
 
@@ -464,7 +500,6 @@ pandoc output/pages.md \
 This creates publication-ready PDFs from your OCR results, completing the full document digitization pipeline.
 
 ---
-
 
 ## Part II: Building the Interactive Viewer
 
@@ -613,7 +648,7 @@ def calculate_wer(reference, hypothesis):
     return distance / len(ref_words)
 ```
 
-**Running benchmarks:**
+#### Running benchmarks:
 
 ```bash
 # Create ground truth template
@@ -640,7 +675,7 @@ Based on testing with 5 pages of typed documents from the August Anton autobiogr
 
 *With the improved prompt, GPT-5 achieves better accuracy than raw OCR while preserving document structure. Prompt design is critical—results shown here use a carefully tuned prompt that explicitly preserves formatting and prohibits rewriting.
 
-**Key findings:**
+#### Key findings:
 
 - **Pytesseract excels on typed documents**: CER 0.082 (98.5% accuracy) on clean typed text
 - **GPT-5 with improved prompt**: Achieves CER 0.079 (slightly better than raw OCR) while preserving structure
@@ -650,7 +685,7 @@ Based on testing with 5 pages of typed documents from the August Anton autobiogr
 
 ### When to Use Which Approach
 
-**Decision tree:**
+#### Decision tree:
 
 ```
 Use Pytesseract for printed text.
@@ -663,7 +698,7 @@ Should you use LLM correction?
 
 ### Production Deployment Considerations
 
-**Scaling strategies:**
+#### Scaling strategies:
 
 ```python
 from multiprocessing import Pool
@@ -683,7 +718,7 @@ def process_batch_parallel(image_paths, output_dir, config, num_workers=4):
     return results
 ```
 
-**Error handling and monitoring:**
+#### Error handling and monitoring:
 
 ```python
 import logging
@@ -720,7 +755,7 @@ def process_with_monitoring(image_path, output_dir):
         return None
 ```
 
-**Storage and archival:**
+#### Storage and archival:
 
 ```python
 import json
@@ -753,7 +788,7 @@ def save_results_with_metadata(results, output_dir):
 
 ### Multi-Language Support
 
-**Tesseract language packs:**
+#### Tesseract language packs:
 
 ```bash
 # Install additional languages
@@ -914,32 +949,32 @@ OpenAI. (2025). **GPT-5 System Card**. <https://openai.com/index/gpt-5-system-ca
 
 #### Documentation and Tools
 
-**Official Documentation:**
+##### Official Documentation:
 
 - [Tesseract OCR Documentation](https://tesseract-ocr.github.io/) - Installation, usage, language packs
 - [OpenAI API Documentation](https://platform.openai.com/docs) - GPT-5 usage and pricing ([Pricing Page](https://platform.openai.com/docs/pricing))
 - [OpenCV Documentation](https://docs.opencv.org/) - Image processing functions
 - [Streamlit Documentation](https://docs.streamlit.io/) - Building interactive apps
 
-**Libraries and Frameworks:**
+##### Libraries and Frameworks:
 
 - [OpenCV](https://opencv.org/) - Computer vision and image processing
 - [Pillow (PIL)](https://pillow.readthedocs.io/) - Python imaging library
 - [Pandas](https://pandas.pydata.org/) - Data manipulation and analysis
 - [pdf2image](https://github.com/Belval/pdf2image) - PDF to image conversion
 
-**Preprocessing Techniques:**
+##### Preprocessing Techniques:
 
 - [Pre-processing in OCR](https://towardsdatascience.com/pre-processing-in-ocr-fc231c6035a7) - Detailed guide
 - [Image Thresholding Tutorial](https://docs.opencv.org/4.x/d7/d4d/tutorial_py_thresholding.html) - OpenCV guide
 - [Morphological Operations](https://docs.opencv.org/4.x/d9/d61/tutorial_py_morphological_ops.html) - Text region detection
 
-**Benchmarking and Datasets:**
+##### Benchmarking and Datasets:
 
 - [Papers with Code - OCR](https://paperswithcode.com/task/optical-character-recognition) - Latest research
 - [Google Dataset Search](https://datasetsearch.research.google.com/) - Find OCR datasets
 
-**Verified Specifications and Benchmarks:**
+##### Verified Specifications and Benchmarks:
 
 - [OCR Confidence Thresholds](https://www.parascript.com/blog/your-ocr-confidence-scores/) - Industry best practices
 
@@ -963,14 +998,14 @@ The project demonstrates that production-quality OCR doesn't require expensive c
 
 ### Acknowledgments
 
-**Technologies:**
+#### Technologies:
 
 - Tesseract OCR (Google/contributors)
 - GPT-5 (OpenAI)
 - OpenCV
 - Streamlit
 
-**Research papers:**
+#### Research papers:
 
 - OpenAI. (2025). GPT-5 API Documentation.
 - Smith, R. (2007). An Overview of the Tesseract OCR Engine. ICDAR 2007.
@@ -979,8 +1014,7 @@ The project demonstrates that production-quality OCR doesn't require expensive c
 
 ## Appendix
 
-
-**Key file purposes:**
+### Key file purposes:
 
 1. **text_from_pdfs.py** - Main document OCR pipeline
    - Handles PDFs and images
@@ -1001,25 +1035,24 @@ The project demonstrates that production-quality OCR doesn't require expensive c
    - Calculates error rates
    - Generates comparison reports
 
-
 ### B. Complete Setup Guide
 
 ### System Dependencies
 
-**macOS:**
+#### macOS:
 
 ```bash
 brew install tesseract poppler
 ```
 
-**Ubuntu/Debian:**
+#### Ubuntu/Debian:
 
 ```bash
 sudo apt-get update
 sudo apt-get install -y tesseract-ocr poppler-utils
 ```
 
-**Windows:**
+#### Windows:
 
 - Install Tesseract from [GitHub releases](https://github.com/UB-Mannheim/tesseract/wiki)
 - Install Poppler from [poppler-windows](http://blog.alivate.com.au/poppler-windows/)
@@ -1027,7 +1060,7 @@ sudo apt-get install -y tesseract-ocr poppler-utils
 
 ### Python Environment
 
-**Using Conda (recommended):**
+#### Using Conda (recommended):
 
 ```bash
 # Create environment
@@ -1035,7 +1068,7 @@ conda env create -f local_environment.yml
 conda activate ./env
 ```
 
-**Using pip:**
+#### Using pip:
 
 ```bash
 # Create virtual environment
@@ -1074,7 +1107,7 @@ python benchmark.py \
 
 ### Troubleshooting
 
-**"Tesseract not found":**
+#### "Tesseract not found":
 
 ```bash
 # Verify installation
@@ -1083,7 +1116,7 @@ tesseract --version
 # If not found, check PATH or reinstall
 ```
 
-**"OpenAI API error":**
+#### "OpenAI API error":
 
 ```bash
 # Check API key
