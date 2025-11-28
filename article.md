@@ -74,17 +74,17 @@ WER is useful for understanding readability and practical usability. A document 
 
 Both metrics use the Levenshtein distance algorithm to find the minimum edit distance between the OCR output and ground truth text.
 
-Results from processing the August Anton documents (5-page benchmark):
+Results from processing the August Anton documents (5 pages with ground truth):
 
 | Approach | Character Error Rate (CER) | Processing Time | API Cost |
 |----------|---------------------------|-----------------|----------|
-| **Pytesseract alone** | 0.082 (98.5% accuracy) | 3.28s/page | $0 |
-| **Pytesseract + GPT-5** | 0.079* | 259.67s/page | $0.0045/page |
+| **Pytesseract alone** | 0.082 (91.8% accuracy) | 3.28s/page | $0 |
+| **Pytesseract + GPT-5 (improved prompt)** | 0.079* | 259.67s/page | ~$0.01/page |
 | **No preprocessing** | Higher error rate | Similar | $0 |
 
 *With the improved prompt, GPT-5 achieves slightly better accuracy than raw OCR (CER 0.079 vs 0.082) while preserving document structure. Prompt design is critical—a vague prompt can result in CER >1.0 due to over-editing.
 
-**Key insight**: For clean printed text, Pytesseract alone provides excellent 98.5% accuracy. AI correction is most valuable for noisy scans or when readability improvements are worth the processing time.
+**Key insight**: For clean printed text, Pytesseract alone provides 91.8% accuracy. AI correction with a carefully designed prompt can improve this slightly while also improving readability.
 
 ---
 
@@ -275,6 +275,8 @@ Even the best OCR makes systematic errors:
 
 GPT-5 provides context-aware correction:
 
+> **Note**: The example below shows prompts inline for tutorial clarity. The actual implementation in `text_from_pdfs.py` uses module-level constants (`SYSTEM_PROMPT`, `USER_PROMPT`) for reusability.
+
 ```python
 def ask_the_english_prof(client, text):
     """
@@ -335,8 +337,8 @@ with open(os.path.join(output_dir, 'corrected.txt'), 'w') as f:
 #### Cost considerations:
 
 - GPT-5 API pricing: $1.25 per 1M input tokens, $10.00 per 1M output tokens ([OpenAI Pricing](https://platform.openai.com/docs/pricing))
-- Typical OCR correction: $0.0045 per page (measured on 5 pages, varies with page length)
-- For a 30-page document: ~$0.30-0.60 total (estimated)
+- Typical OCR correction: ~$0.01 per page (measured on 30 pages, varies with page length)
+- For a 30-page document: ~$0.30 total (estimated)
 - Significantly cheaper than manual correction
 - Can be selectively applied to pages with low confidence
 
@@ -510,10 +512,11 @@ The Streamlit viewer provides interactive result comparison and validation, allo
 The viewer (`viewer_app.py`) displays OCR results for document processing:
 
 ```python
+import os
 import streamlit as st
 import pandas as pd
 from PIL import Image
-from common import get_preproc_path # Assuming this is available and needed
+from common import get_preproc_path
 
 st.set_page_config(
     page_title="August OCR",
@@ -557,9 +560,9 @@ This works best for typed or printed documents.""") # Updated description
 
     col1, col2 = st.columns(2)
     with col1:
-        st.image(image, caption=f'Original Page {page}', use_column_width=True)
+        st.image(image, caption=f'Original Page {page}', use_container_width=True)
     with col2:
-        st.image(pre_image, caption=f'Preprocessed Page {page}', use_column_width=True)
+        st.image(pre_image, caption=f'Preprocessed Page {page}', use_container_width=True)
 
     col1, col2 = st.columns(2)
     with col1:
@@ -608,7 +611,7 @@ The viewer opens at `http://localhost:8501` with:
 
 ---
 
-## Part IV: Performance Analysis and Best Practices
+## Part III: Performance Analysis and Best Practices
 
 ### Benchmarking OCR Accuracy
 
@@ -666,22 +669,22 @@ python benchmark.py \
 
 ### Performance Comparison
 
-Based on testing with 5 pages of typed documents from the August Anton autobiography:
+Based on testing with 5 pages of typed documents (with ground truth) from the August Anton autobiography:
 
 | Method | CER (avg) | WER (avg) | Speed (CPU) | Cost |
 |--------|-----------|-----------|-------------|------|
 | Pytesseract | 0.082 | 0.196 | 3.28s/page | Free |
-| Pytesseract + GPT-5 | 0.079* | 0.177* | 259.67s/page | $0.0045/page |
+| Pytesseract + GPT-5 (improved prompt) | 0.079* | 0.177* | 259.67s/page | ~$0.01/page |
 
-*With the improved prompt, GPT-5 achieves better accuracy than raw OCR while preserving document structure. Prompt design is critical—results shown here use a carefully tuned prompt that explicitly preserves formatting and prohibits rewriting.
+*Results shown use the improved prompt from this article. A vague prompt achieved CER 1.209 (worse than raw OCR). See "Prompt Sensitivity" section above.
 
 #### Key findings:
 
-- **Pytesseract excels on typed documents**: CER 0.082 (98.5% accuracy) on clean typed text
+- **Pytesseract excels on typed documents**: CER 0.082 (91.8% accuracy) on clean typed text
 - **GPT-5 with improved prompt**: Achieves CER 0.079 (slightly better than raw OCR) while preserving structure
-- **GPT-5 processing time**: ~80x slower than raw OCR, but cost remains low ($0.0045/page)
+- **GPT-5 processing time**: ~80x slower than raw OCR, but cost remains low (~$0.01/page)
 - **Prompt sensitivity**: Results are highly dependent on prompt design. A vague prompt can cause over-editing (CER >1.0), while the improved prompt achieves better accuracy than raw OCR
-- **Cost**: Minimal even with LLM correction ($0.0045/page measured on 5 pages)
+- **Cost**: Minimal even with LLM correction (~$0.01/page measured)
 
 ### When to Use Which Approach
 
@@ -784,7 +787,7 @@ def save_results_with_metadata(results, output_dir):
 
 ---
 
-## Part V: Advanced Extensions
+## Part IV: Advanced Extensions
 
 ### Multi-Language Support
 
@@ -891,7 +894,7 @@ The essential insights from building this OCR system:
 
 - **Preprocessing impact varies by document quality** - Image quality directly impacts accuracy. For clean typed documents, preprocessing provides minimal benefit. For noisy, scanned, or aged documents, preprocessing (grayscale conversion, noise reduction, thresholding) can provide more significant improvements.
 
-- **LLM correction improves accuracy when properly prompted** - GPT-5 with a carefully designed prompt achieves CER 0.079 (slightly better than raw OCR's 0.082) while preserving document structure, at minimal cost ($0.0045/page measured). **Critical**: Prompt design is essential—results are highly sensitive to prompt wording. A vague prompt can cause over-editing and higher error rates than raw OCR. Always test and validate prompts with ground truth data.
+- **LLM correction improves accuracy when properly prompted** - GPT-5 with a carefully designed prompt achieves CER 0.079 (slightly better than raw OCR's 0.082) while preserving document structure, at minimal cost (~$0.01/page measured). **Critical**: Prompt design is essential—results are highly sensitive to prompt wording. A vague prompt can cause over-editing and higher error rates than raw OCR. Always test and validate prompts with ground truth data.
 
 - **Interactive tools help validate and refine results** - A good viewer isn't just nice to have—it's essential for quality assurance, debugging preprocessing pipelines, and building confidence in production systems.
 
@@ -1098,10 +1101,9 @@ python text_from_pdfs.py
 # 2. View results
 streamlit run viewer_app.py
 
-# 3. Run benchmarks
+# 3. Run benchmarks (ground truth auto-loaded from ground_truth/*_ref.txt)
 python benchmark.py \
   --input test_images/ \
-  --ground-truth ground_truth.json \
   --methods pytesseract
 ```
 
