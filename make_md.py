@@ -9,7 +9,6 @@ from dotenv import load_dotenv
 
 
 MODEL = "gpt-5"
-TOP_P = 0.01
 
 
 def gen_markdown(client, text):
@@ -32,7 +31,7 @@ def gen_markdown(client, text):
             "content": str(text),
         }
     ]
-    completion = client.chat.completions.create(model=MODEL, top_p=TOP_P, messages=messages)
+    completion = client.chat.completions.create(model=MODEL, messages=messages)
     return completion.choices[0].message.content
 
 
