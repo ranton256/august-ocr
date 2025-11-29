@@ -141,7 +141,7 @@ def preprocess_image(img):
 
 1. **Grayscale conversion** - Reduces dimensionality while preserving text features. Color adds complexity without improving text recognition.
 
-2. **Median blur** - Unlike Gaussian blur, median blur preserves edges while removing salt-and-pepper noise common in scans. The 5×5 kernel balances noise reduction with detail preservation.
+2. **Median blur** - Unlike Gaussian blur, median blur preserves edges while removing salt-and-pepper noise common in scans. A kernel size of 5 (creating a 5×5 neighborhood) balances noise reduction with detail preservation.
 
 3. **Otsu's thresholding** - Automatically finds the optimal threshold value by analyzing the image histogram. The `THRESH_BINARY_INV` flag inverts colors (dark text on light background becomes light text on dark background, which Tesseract prefers).
 
@@ -977,10 +977,6 @@ OpenAI. (2025). **GPT-5 System Card**. <https://openai.com/index/gpt-5-system-ca
 - [Papers with Code - OCR](https://paperswithcode.com/task/optical-character-recognition) - Latest research
 - [Google Dataset Search](https://datasetsearch.research.google.com/) - Find OCR datasets
 
-##### Verified Specifications and Benchmarks:
-
-- [OCR Confidence Thresholds](https://www.parascript.com/blog/your-ocr-confidence-scores/) - Industry best practices
-
 #### Code Repository
 
 This article's complete source code includes:
@@ -1058,7 +1054,7 @@ sudo apt-get install -y tesseract-ocr poppler-utils
 #### Windows:
 
 - Install Tesseract from [GitHub releases](https://github.com/UB-Mannheim/tesseract/wiki)
-- Install Poppler from [poppler-windows](http://blog.alivate.com.au/poppler-windows/)
+- Install Poppler from [poppler-windows](https://github.com/oschwartz10612/poppler-windows)
 - Add both to system PATH
 
 ### Python Environment

@@ -38,7 +38,7 @@ def gen_markdown(client, text):
 
 def read_pages(csv_path, col_name="corrected"):
     df = pd.read_csv(csv_path)
-    pages = df['corrected']
+    pages = df[col_name]
     pages = list(pages)
     return pages
 

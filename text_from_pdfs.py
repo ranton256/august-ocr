@@ -30,7 +30,7 @@ IMPORTANT INSTRUCTIONS:
 
 OCR text to correct:
 """
-RECT_SIZE = (50, 40)  # TODO: this seems unused.
+RECT_SIZE = (50, 40)  # Kernel size for morphological dilation in extract_text()
 MIN_BBOX_WIDTH = 30  # Minimum width for a bounding box to be considered
 MIN_BBOX_HEIGHT = 30  # Minimum height for a bounding box to be considered
 
