@@ -412,7 +412,7 @@ def gen_markdown(client, text):
     """
     Convert plain text to structured Markdown
 
-    Uses GPT-5 with top_p=0.01 for consistency
+    Uses GPT-5 for intelligent formatting
     """
     messages = [
         {
@@ -433,10 +433,8 @@ def gen_markdown(client, text):
         }
     ]
 
-    # Use very low top_p for consistency
     completion = client.chat.completions.create(
         model="gpt-5",
-        top_p=0.01,  # Ensures deterministic output
         messages=messages
     )
 
@@ -463,11 +461,11 @@ def main():
     print("Finished. Output saved to output/pages.md")
 ```
 
-#### Key parameters:
+#### Key design choices:
 
-- `top_p=0.01` - Forces deterministic output, ensuring consistent formatting across runs
 - Focused prompt - Adds structure without changing content
 - Batch processing - Handles entire documents efficiently
+- Light-touch formatting - Converts verses to blockquotes, preserves prose
 
 #### Running markdown generation:
 
