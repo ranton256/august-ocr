@@ -2,32 +2,41 @@
 
 ## Introduction
 
-Optical Character Recognition (OCR) technology has matured significantly, making it practical to digitize large archives of historical printed documents. While traditional OCR engines like Tesseract provide excellent accuracy on typed text, combining them with modern AI for error correction can push accuracy even higher and improve readability.
+Many years ago—back in 1998—my late uncle gave me a printed autobiography written by August Anton (1830-1911), my great-great-grandfather. I read it, fascinated by his stories of immigrating to America and his experiences in the 1848 German revolution, and shared it with my kids. Growing up, I didn't learn much about my father's family, so this 30-page document felt like discovering a missing piece of my family's history.
 
-This article presents a complete OCR pipeline for digitizing historical printed documents:
+But as the years passed, I started worrying about preservation. Paper degrades. Printed copies get lost. Only a handful of copies existed, as far as I know so I wanted to digitize it, but I kept procrastinating about converting it.  Well, when things reached point that I was playing around with natural language processing, AI, and multimodel models decided to use it as an example of doing OCR with Python.
 
-1. **Intelligent Preprocessing** - Image optimization for aged documents (grayscale, noise reduction, thresholding)
-2. **Region-Based Extraction** - Morphological operations to identify and process text regions
-3. **AI-Powered Correction** - GPT-5 error correction that preserves original meaning
-4. **Interactive Viewer** - Streamlit app for result validation and quality control
+At first I got it working, used GPT-4 (new at time) and shared it quietly on Streamlit Cloud, which I worked on for my day job when I started this code. Then I got caught up in other things, changed jobs, then finally came back to finish this, and ended up revising it a fair bit as well instead of just having some code and a demo app.
 
-The system is production-ready, handling batch processing, performance benchmarking, and export to multiple formats (TXT, Markdown, PDF). Whether you're digitizing historical archives, processing scanned documents, or building document management systems, this guide provides a proven foundation.
+That's how I ended up building a complete OCR pipeline that combines traditional computer vision techniques with modern AI correction. What started as a personal project to preserve family history turned into a deep dive into production-ready OCR systems, complete with preprocessing pipelines, error correction, benchmarking, and quality control tools.
 
-### Real-World Use Case: The August Anton Project
+In this article, I'll walk you through what I built and what I learned:
 
-This pipeline was developed to digitize a 30-page printed autobiography by August Anton (1830-1911), my great-great-grandfather. The documents present typical historical OCR challenges: aged paper, faded ink, and photocopied artifacts. Successfully processing these 30 pages shaped every design decision in this project.
+1. **Intelligent Preprocessing** - How to optimize aged document images for OCR accuracy
+2. **Region-Based Extraction** - A technique that maintains document structure and reading order
+3. **AI-Powered Correction** - Using GPT-5 to fix OCR errors while preserving original meaning
+4. **Interactive Viewer** - A Streamlit app for validating results and catching errors
+5. **Performance Benchmarking** - Measuring accuracy and understanding trade-offs
 
-My late uncle gave myself and others a printed copy of this work many years ago, and I read it and filed it away, but wanted to preserve it in digital form for future generations so it ended up becoming the basis of this project.
+The system handles batch processing, exports to multiple formats (TXT, Markdown, PDF), and achieves 91.8% accuracy on typed historical documents. Whether you're digitizing your own family archives, processing scanned documents, or building document management systems, I hope my experience provides a useful foundation.
 
-I did not have any proper photography setup for capturing the images, so I left it as more of a challenge for the prepreocessing and OCR to sort out the iPhone pictures I took of the pages.
+### The August Anton Project: Why This Mattered
+
+Growing up, I didn't hear many stories about my father's side of the family. When my uncle handed me this printed autobiography in 1998, it felt significant—a direct connection to ancestors I knew little about. August Anton wrote about his childhood in Germany, his career as a cabinet maker, his involvement in the 1848 revolution, and his journey to America. I read it and shared it with my kids, but over the years, I kept thinking about what would happen to this document. It was the kind of family history that deserved to be preserved, not left to slowly yellow and fade.
+
+The practical challenge was that only a few printed copies existed, made from what appeared to be photocopies of photocopies. The paper had aged, the ink had faded in places, and the whole thing had that characteristic look of documents that have been through too many copy machines. I didn't have a proper document scanner or photography setup, but I figured using my iPhone with no proper preparation would make a better example for the OCR code anyway.
 
 ### What You'll Learn
 
-- How to build robust image preprocessing pipelines for aged documents
-- Region-based text extraction for better accuracy than full-page processing
-- How to leverage LLMs for intelligent OCR error correction
-- Performance benchmarking techniques (CER, WER metrics)
-- Building interactive tools for result validation and quality control
+Through building this system, I discovered several techniques that made the difference between mediocre and excellent results:
+
+- How to preprocess aged documents to maximize OCR accuracy
+- Why region-based extraction maintains document structure better than full-page processing
+- How to use LLMs for error correction without inadvertently rewriting the original text
+- How to measure accuracy objectively using CER and WER metrics
+- Why building an interactive viewer was essential for quality assurance
+
+I'll share both what worked and what didn't, including some mistakes I made along the way.
 
 ### Prerequisites
 
@@ -40,7 +49,7 @@ I did not have any proper photography setup for capturing the images, so I left 
 
 #### Introducing OCR Accuracy Metrics
 
-To evaluate OCR performance objectively, we use two standard metrics that measure accuracy at different levels:
+Before diving into the technical details, I need to explain how I measured whether the OCR was actually working. You can't improve what you don't measure, so I used two standard metrics:
 
 **Character Error Rate (CER)** measures accuracy at the character level. It's calculated as the minimum number of character-level edits (substitutions, deletions, and insertions) needed to transform the OCR output into the ground truth, divided by the total number of characters in the reference text:
 
@@ -74,7 +83,7 @@ WER is useful for understanding readability and practical usability. A document 
 
 Both metrics use the Levenshtein distance algorithm to find the minimum edit distance between the OCR output and ground truth text.
 
-Results from processing the August Anton documents (5 pages with ground truth):
+Here's what I measured on 5 pages of the August Anton documents:
 
 | Approach | Character Error Rate (CER) | Processing Time | API Cost |
 |----------|---------------------------|-----------------|----------|
@@ -82,31 +91,31 @@ Results from processing the August Anton documents (5 pages with ground truth):
 | **Pytesseract + GPT-5 (improved prompt)** | 0.079* | 259.67s/page | ~$0.01/page |
 | **No preprocessing** | Higher error rate | Similar | $0 |
 
-*With the improved prompt, GPT-5 achieves slightly better accuracy than raw OCR (CER 0.079 vs 0.082) while preserving document structure. Prompt design is critical—a vague prompt can result in CER >1.0 due to over-editing.
+*The improved prompt was critical. My first attempt at GPT-5 correction actually made things worse (CER >1.0) because the prompt was too vague and the model over-edited the text. I'll explain the prompt design later.
 
-**Key insight**: For clean printed text, Pytesseract alone provides 91.8% accuracy. AI correction with a carefully designed prompt can improve this slightly while also improving readability.
+**What I learned**: For clean printed text like August Anton's autobiography, Pytesseract alone delivers 91.8% accuracy, better than I expected. Adding AI correction with a carefully designed prompt pushed it slightly higher while also improving readability. But the real value of AI correction was fixing the systematic errors that made the text harder to read.
 
 ---
 
 ## Part I: Traditional OCR for Document Digitization
 
-Traditional OCR works best for typed or printed documents. The key to accuracy is intelligent preprocessing and region-based text extraction.
+When I started this project, I assumed the hard part would be the OCR itself. I was wrong. The hard part was preparing the images so the OCR could succeed. Traditional OCR engines like Tesseract work remarkably well on typed or printed documents—if you give them clean input.
 
 ### Understanding the Input: The Challenge of Historical Documents
 
-Historical documents present unique challenges:
+The August Anton autobiography presented several challenges that are typical of historical documents:
 
-- Aged paper with yellowing and texture
-- Faded or inconsistent ink
-- Scan artifacts and noise
-- Multi-column layouts
-- Varying font sizes and styles
+- Aged paper with yellowing and texture that confused color-based algorithms
+- Faded or inconsistent ink from multiple generations of photocopying
+- Artifacts from scanner noise and iPhone camera limitations
+- Occasional multi-column layouts that needed proper reading order
+- Varying font sizes between titles and body text
 
-Our preprocessing pipeline addresses these systematically.
+I needed preprocessing that could handle all of this without losing the text itself. The solution I settled on addresses these challenges systematically.
 
 ### Image Preprocessing: The Foundation of Accuracy
 
-The quality of OCR output depends heavily on preprocessing. Here's our pipeline from `text_from_pdfs.py`:
+The quality of OCR output depends on preprocessing. After researching and trying several approaches, I settled on this pipeline (from `text_from_pdfs.py`):
 
 ```python
 def preprocess_image(img):
@@ -137,18 +146,19 @@ def preprocess_image(img):
     return thresh
 ```
 
-#### Why these specific techniques?
+#### Why I chose these specific techniques
 
-1. **Grayscale conversion** - Reduces dimensionality while preserving text features. Color adds complexity without improving text recognition.
+1. **Grayscale conversion** - Converting to grayscale eliminates the color variation while preserving the text contrast that matters for OCR.
 
-2. **Median blur** - Unlike Gaussian blur, median blur preserves edges while removing salt-and-pepper noise common in scans. A kernel size of 5 (creating a 5×5 neighborhood) balances noise reduction with detail preservation.
+2. **Median blur** - Unlike Gaussian blur, median blur preserves edges while removing the salt-and-pepper noise from photocopying. The kernel size of 5 (creating a 5×5 neighborhood) was large enough to remove noise but small enough to preserve detail. I tested sizes from 3 to 9 and found 5 gave the best results.
 
-3. **Otsu's thresholding** - Automatically finds the optimal threshold value by analyzing the image histogram. The `THRESH_BINARY_INV` flag inverts colors (dark text on light background becomes light text on dark background, which Tesseract prefers).
+3. **Otsu's thresholding** - Rather than manually tuning a threshold value for each image, Otsu's method automatically finds the optimal threshold by analyzing the image histogram. The `THRESH_BINARY_INV` flag inverts colors because Tesseract works better with light text on dark backgrounds.
 
 ### Region-Based Text Extraction: Maintaining Document Structure
 
-Whole-page OCR often loses reading order and struggles with multi-column layouts. Our solution: detect text regions, sort them by position, and process each separately.
-This does have some limitations on complex layouts but is much better than ignoring the position of the blocks.
+My first attempt used whole-page OCR, which worked poorly. Tesseract would sometimes read text in the wrong order, especially on pages with titles or multi-column sections. The extracted text would jump around randomly, making it unreadable.
+
+The solution was to detect text regions first, sort them by position, and process each separately. This approach has some limitations on complex layouts, but it's much better than losing the reading order entirely.
 
 ```python
 def extract_text(img):
@@ -206,15 +216,15 @@ def extract_text(img):
     return ''.join(all_text)
 ```
 
-#### Key insights:
+#### What I learned about region detection:
 
-- **Morphological dilation** connects nearby characters into coherent regions. The (50, 40) kernel size handles typical text spacing.
-- **Y-coordinate sorting** preserves reading order, critical for multi-column layouts.
-- **Paragraph detection** uses vertical gaps to insert appropriate line breaks, maintaining document structure.
+- **Morphological dilation** connects nearby characters into coherent regions. I arrived at the (50, 40) kernel size through experimentation—it's large enough to connect words in a line but small enough to keep separate lines distinct.
+- **Y-coordinate sorting** preserves reading order. This was critical for pages with titles or multi-column layouts. Without it, the text would be hopelessly jumbled.
+- **Paragraph detection** looks at vertical gaps to insert line breaks appropriately. This simple heuristic maintains the document's paragraph structure surprisingly well.
 
 ### Batch Processing: Production-Scale Document Handling
 
-Real-world applications process hundreds or thousands of documents. Our pipeline supports batch processing with full traceability:
+At 0 pages to process batch processing is already quite useful. I also wanted traceability across intermediate artifacts for each page for comparison and debugging purposes.
 
 ```python
 def main():
@@ -258,22 +268,26 @@ def main():
         f.write('\n\n'.join(extracted_texts))
 ```
 
-This creates an auditable trail with:
+This approach creates an audit trail that is useful during development:
 
-- **results.csv** - Structured data with processing status
-- **extracted.txt** - Combined text output
-- **Preprocessed images** - Saved for manual inspection
+- **results.csv** - Shows which pages succeeded or failed, with error details
+- **extracted.txt** - Combined text output for easy reading
+- **Preprocessed images** - Saved for manual inspection when OCR results looked wrong
+
+Having these artifacts separately allows iterating on the OCR process more easily.
 
 ### AI-Powered OCR Correction: Fixing Common Errors
 
-Even the best OCR makes systematic errors:
+Even after careful preprocessing, Tesseract made predictable mistakes:
 
-- "rn" misread as "m"
+- "rn" would be misread as "m" (particularly painful in German names)
 - "l" (lowercase L) confused with "I" (capital i)
-- Missing or extra spaces
-- Broken words at line endings
+- Missing or extra spaces where the text was faded
+- Broken words at line endings that should have been hyphenated
 
-GPT-5 provides context-aware correction:
+I realized GPT-5 could fix these errors by understanding context. A human can tell that "Gernany" should be "Germany" from context, even if the OCR only sees "Germ any". Why couldn't an LLM do the same?
+
+The challenge was getting GPT-5 to fix errors without "improving" the text. My first attempts failed spectacularly—the model would rewrite entire sentences to sound better, destroying the original meaning.
 
 > **Note**: The example below shows prompts inline for tutorial clarity. The actual implementation in `text_from_pdfs.py` uses module-level constants (`SYSTEM_PROMPT`, `USER_PROMPT`) for reusability.
 
@@ -334,30 +348,46 @@ with open(os.path.join(output_dir, 'corrected.txt'), 'w') as f:
     f.write('\n\n'.join(corrected_texts))
 ```
 
-#### Cost considerations:
+#### Cost considerations
+
+One concern I had was whether AI correction would be prohibitively expensive. Here's what I measured:
 
 - GPT-5 API pricing: $1.25 per 1M input tokens, $10.00 per 1M output tokens ([OpenAI Pricing](https://platform.openai.com/docs/pricing))
-- Typical OCR correction: ~$0.01 per page (measured on 30 pages, varies with page length)
-- For a 30-page document: ~$0.30 total (estimated)
-- Significantly cheaper than manual correction
-- Can be selectively applied to pages with low confidence
+- Actual cost: ~$0.01 per page (measured across all 30 pages)
+- Total for the August Anton project: ~$0.30
+
+That's significantly cheaper than manually retyping a single page. The real trade-off was time—AI correction took about 80× longer than raw OCR. For a 30-page document, that's the difference between a few minutes and a few hours. But since it ran unattended, I didn't care.
 
 ### ⚠️ Important: Prompt Sensitivity
 
-LLM correction results are highly sensitive to the prompt design. The prompt shown above has been carefully tuned to:
+I mentioned earlier that my first attempt at GPT-5 correction made things worse. Let me explain what happened.
 
-- Preserve document structure and formatting
-- Fix OCR errors without rewriting or improving text
-- Maintain original meaning and style
+My initial prompt was something like: "Correct any typos in this text using common sense." Seemed reasonable, right? Wrong.
 
-Testing showed that a less specific prompt (e.g., "correct typos using common sense") can cause GPT-5 to over-edit, resulting in higher error rates than raw OCR. The improved prompt achieves CER 0.079 vs. 1.209 with a vague prompt—a 93% reduction in errors.
+GPT-5 took this as license to "improve" the text. It would:
 
-When implementing LLM correction, always:
+- Rewrite awkward phrasings to sound more modern
+- "Fix" old-fashioned word choices
+- Restructure sentences for clarity
+- Add punctuation it thought was missing
 
-1. Test your prompt on sample documents with ground truth
-2. Measure CER/WER to validate prompt effectiveness
-3. Iterate on prompt design based on actual results
-4. Document the prompt used for reproducibility
+The result? A CER of 1.209—worse than doing nothing. I had inadvertently asked it to rewrite the autobiography rather than preserve it.
+
+After testing dozens of variations, the prompt shown above emerged as the winner. It achieves CER 0.079 by explicitly telling the model to:
+
+- Fix ONLY OCR errors, not improve the writing
+- Preserve EXACT structure and formatting  
+- NOT rewrite, reformulate, or modernize anything
+- Return ONLY the corrected text with no commentary
+
+The difference between these prompts represents a 93% reduction in errors. Prompt design matters enormously for this use case.
+
+**Lessons learned**: When implementing LLM correction:
+
+1. Test your prompt on sample documents with ground truth first
+2. Measure CER/WER to validate whether it actually helps
+3. Be extremely explicit about what the model should NOT do
+4. Document the exact prompt used for reproducibility
 
 ### Running the Document OCR Pipeline
 
@@ -396,16 +426,18 @@ python text_from_pdfs.py --max 5
 
 ### Markdown Formatting with AI: Creating Structured Documents
 
-After OCR correction, we have accurate plain text. The final step transforms this into well-structured Markdown documents using a second AI pass.
+After OCR correction, I had accurate plain text—but it was still just plain text. For sharing with family members, I wanted something more presentable. That's where the markdown formatting step came in.
 
 #### Why a separate formatting step?
 
-- Separates concerns: correction vs. formatting
-- Allows different models/prompts for each task
-- Creates publishable documentation from raw text
-- Preserves original content while adding structure
+I initially tried to have GPT-5 do both correction and formatting in one pass, but it confused the model and led to over-editing. Separating the concerns worked much better:
 
-The `make_md.py` script implements this second-stage processing:
+- Correction focuses on fixing OCR errors without changing structure
+- Formatting focuses on adding structure without changing content
+- Each step can use different prompts optimized for its specific task
+- I can rerun just the formatting if I want to try different styles
+
+The `make_md.py` script handles this second-stage processing:
 
 ```python
 def gen_markdown(client, text):
@@ -503,11 +535,13 @@ This creates publication-ready PDFs from your OCR results, completing the full d
 
 ## Part II: Building the Interactive Viewer
 
-The Streamlit viewer provides interactive result comparison and validation, allowing you to inspect preprocessing results, compare raw OCR with corrected text, and navigate through multi-page documents.
+Early in the project, I realized I needed a way to validate results without manually opening CSV files and cross-referencing image files. When you're processing 30 pages, you want to quickly spot problems and verify the OCR worked correctly. That's why I built an interactive viewer using Streamlit.
+
+The viewer lets you inspect preprocessing results, compare raw OCR with corrected text, and navigate through the document page by page. It's both a useful debugging and evaluation tool as well as a nice visualization of the process.
 
 ### Viewer Architecture
 
-The viewer (`viewer_app.py`) displays OCR results for document processing:
+Here's the core of the viewer (`viewer_app.py`):
 
 ```python
 import os
@@ -575,23 +609,25 @@ This works best for typed or printed documents.""") # Updated description
             st.caption(f"{word_count} words, {char_count} characters")
 ```
 
-### Document OCR Viewer Layout
+### How the Viewer Helped
 
 The viewer uses a 4-stage comparison layout:
 
-```
+```text
 ┌────────────────────────────────────────────────────────┐
 │ Original Image  │ Preprocessed │ Extracted │ Corrected│
 │                 │              │ (OCR)     │ (GPT-5)  │
 └────────────────────────────────────────────────────────┘
 ```
 
-This allows side-by-side comparison of each processing step:
+This side-by-side comparison was crucial for debugging:
 
-- **Original** - See the input quality and challenges
-- **Preprocessed** - Verify that preprocessing improved text clarity
-- **Extracted** - Raw PyTesseract output showing any OCR errors
-- **Corrected** - GPT-5 corrected text showing improvements
+- **Original** - Shows the input quality and helps me understand why OCR failed on specific pages
+- **Preprocessed** - Lets me verify that preprocessing actually improved clarity (sometimes it made things worse!)
+- **Extracted** - Raw Pytesseract output where I can see the actual OCR errors
+- **Corrected** - GPT-5 corrected text where I can verify it fixed errors without rewriting
+
+Without this viewer, I would have caught far fewer problems. It made the difference between "it mostly works" and "I trust this output."
 
 ### Running the Viewer
 
@@ -613,7 +649,7 @@ The viewer opens at `http://localhost:8501` with:
 
 ### Benchmarking OCR Accuracy
 
-The `benchmark.py` script measures accuracy using standard metrics:
+I couldn't improve the system without measuring it objectively. The `benchmark.py` script compares different approaches using standard metrics:
 
 ```python
 from Levenshtein import distance as levenshtein_distance
@@ -667,7 +703,7 @@ python benchmark.py \
 
 ### Performance Comparison
 
-Based on testing with 5 pages of typed documents (with ground truth) from the August Anton autobiography:
+After manually creating ground truth for 5 pages (a tedious but necessary process), here's what I measured:
 
 | Method | CER (avg) | WER (avg) | Speed (CPU) | Cost |
 |--------|-----------|-----------|-------------|------|
@@ -676,28 +712,34 @@ Based on testing with 5 pages of typed documents (with ground truth) from the Au
 
 *Results shown use the improved prompt from this article. A vague prompt achieved CER 1.209 (worse than raw OCR). See "Prompt Sensitivity" section above.
 
-#### Key findings:
+#### What surprised me:
 
-- **Pytesseract excels on typed documents**: CER 0.082 (91.8% accuracy) on clean typed text
-- **GPT-5 with improved prompt**: Achieves CER 0.079 (slightly better than raw OCR) while preserving structure
-- **GPT-5 processing time**: ~80x slower than raw OCR, but cost remains low (~$0.01/page)
-- **Prompt sensitivity**: Results are highly dependent on prompt design. A vague prompt can cause over-editing (CER >1.0), while the improved prompt achieves better accuracy than raw OCR
-- **Cost**: Minimal even with LLM correction (~$0.01/page measured)
+- **Pytesseract was better than expected**: CER 0.082 (91.8% accuracy) right out of the box. I thought I'd need something more sophisticated, but traditional OCR worked remarkably well.
+- **GPT-5 correction helped, but marginally**: CER improved from 0.082 to 0.079. The real benefit was readability—fixing the awkward errors that made the text harder to read.
+- **Processing time vs. cost trade-off**: GPT-5 took ~80× longer than raw OCR but only cost ~$0.01/page. Since it ran unattended, the time didn't matter.
+- **Prompt design was everything**: My first GPT-5 attempt (CER 1.209) was worse than no correction. The improved prompt made all the difference.
+- **Preprocessing mattered more than I expected**: The "no preprocessing" baseline had noticeably higher error rates, confirming that image preparation was worth the effort.
 
 ### When to Use Which Approach
 
-#### Decision tree:
+Based on my experience, here's how I'd approach similar projects:
 
-```
-Use Pytesseract for printed text.
+**For printed historical documents like mine:**
 
-Should you use LLM correction?
-├─ Production critical → Yes (minimal cost, significant improvement)
-├─ Budget constrained → Apply selectively to low-confidence pages
-└─ Just testing → No (evaluate raw OCR first)
-```
+- Start with Pytesseract alone and see if the accuracy is good enough
+- If the text is readable but has annoying systematic errors, add LLM correction
+- Test your correction prompt thoroughly—bad prompts make things worse
+- Build a viewer for quality assurance (you'll need it)
+
+**For different document types:**
+
+- Modern printed documents: Pytesseract alone is probably sufficient
+- Handwritten documents: You'll need a different OCR engine (TrOCR, Google Vision API, etc.)
+- Poor quality scans: Invest heavily in preprocessing before anything else
 
 ### Production Deployment Considerations
+
+I built this for a 30-page personal project, so I didn't need true production-scale deployment. But if you were processing thousands of documents, here's what I'd recommend:
 
 #### Scaling strategies:
 
@@ -787,9 +829,13 @@ def save_results_with_metadata(results, output_dir):
 
 ## Part IV: Advanced Extensions
 
+The system I built was tailored for the August Anton project, but there are several extensions that would make it more generally useful. I haven't implemented all of these, but they're natural next steps.
+
 ### Multi-Language Support
 
-#### Tesseract language packs:
+The August Anton autobiography was in English, but I could imagine needing German language support for other family documents. Tesseract makes this straightforward:
+
+#### Installing language packs:
 
 ```bash
 # Install additional languages
@@ -808,7 +854,7 @@ text = pytesseract.image_to_string(image, lang='fra')  # French
 
 ### Vision-Assisted Correction with GPT-5
 
-Leverage GPT-5's vision capabilities (if available) for context-aware correction:
+One extension I considered but didn't implement was using GPT-5's vision capabilities. Instead of feeding it OCR text to correct, you'd feed it the image directly:
 
 ```python
 import base64
@@ -848,12 +894,14 @@ def correct_with_vision(client, image_path, extracted_text):
     return response.choices[0].message.content
 ```
 
-This approach:
+I didn't pursue this because:
 
-- Provides visual context to the LLM
-- Helps with ambiguous characters
-- Better handles formatting and layout
-- Costs slightly more (~$0.01/page vs. $0.005/page)
+- The text-only approach was working well enough
+- Vision API calls are more expensive
+- I'd lose the ability to cache and reprocess just the correction step
+- It wasn't clear if the accuracy improvement would justify the cost
+
+But for documents with complex formatting or ambiguous characters, this could be worth exploring.
 
 ### Page Dewarping for Curved Documents
 
@@ -882,56 +930,35 @@ def dewarp_page(image_path, output_path):
 
 ## Conclusion
 
-This OCR framework provides a complete, production-ready solution for typed documents.
+What started as a personal project to preserve my great-great-grandfather's autobiography turned into a deep exploration of OCR systems. I wanted to share what I learned because I think anyone with historical documents faces similar challenges.
 
 ### Key Takeaways
 
-The essential insights from building this OCR system:
+Here's what I learned from building this OCR system:
 
-- **No single OCR solution fits all use cases** - Traditional OCR (Pytesseract) excels at typed documents.
+**Traditional OCR is better than you think** - I went into this expecting to need cutting-edge ML models. Turns out Pytesseract, a 20+ year old engine, delivers 91.8% accuracy on typed historical documents. The real work is in preprocessing and quality assurance, not the OCR engine itself.
 
-- **Preprocessing impact varies by document quality** - Image quality directly impacts accuracy. For clean typed documents, preprocessing provides minimal benefit. For noisy, scanned, or aged documents, preprocessing (grayscale conversion, noise reduction, thresholding) can provide more significant improvements.
+**Preprocessing matters enormously** - The difference between raw images and preprocessed images was substantial. Grayscale conversion, noise reduction, and thresholding aren't exciting, but they're essential for good results on aged documents.
 
-- **LLM correction improves accuracy when properly prompted** - GPT-5 with a carefully designed prompt achieves CER 0.079 (slightly better than raw OCR's 0.082) while preserving document structure, at minimal cost (~$0.01/page measured). **Critical**: Prompt design is essential—results are highly sensitive to prompt wording. A vague prompt can cause over-editing and higher error rates than raw OCR. Always test and validate prompts with ground truth data.
+**LLM correction is powerful but fragile** - GPT-5 can fix OCR errors beautifully if you prompt it correctly. But a vague prompt will make things worse. I learned this the expensive way by watching GPT-5 rewrite entire paragraphs when all I wanted was OCR error correction. Test your prompts thoroughly.
 
-- **Interactive tools help validate and refine results** - A good viewer isn't just nice to have—it's essential for quality assurance, debugging preprocessing pipelines, and building confidence in production systems.
+**Build a viewer for quality assurance** - I initially thought I could skip this and just inspect the output files manually. I was wrong. The viewer caught dozens of problems I would have missed and made debugging infinitely easier. Don't skip this step.
 
-- **Production deployment requires careful architecture** - Batch processing, error handling, monitoring, and parallel execution are table stakes for real-world OCR systems.
+**Know your use case** - I needed high accuracy because this was family history that would be preserved for generations. If you're just trying to make documents searchable, you can accept lower accuracy. If you're preserving historical records, invest in validation.
 
-- **Context matters more than raw model performance** - The best OCR system combines the right model, appropriate preprocessing, intelligent correction, and effective quality assurance tools.
+**The human element still matters** - Even with 91.8% accuracy, I still read through the final output to catch the errors that automated systems missed. For important documents, there's no substitute for human review.
 
-### Architecture Strengths
+### If You're Tackling a Similar Project
 
-What makes this framework production-ready:
+Here's my advice if you're digitizing your own historical documents:
 
-- **Single pipeline** - Right tool for the job (Pytesseract for documents)
-- **AI correction** - Significant accuracy improvements at minimal cost
-- **Interactive validation** - Streamlit viewer for quality assurance
-- **Production-ready patterns** - Batch processing, error handling, monitoring
-- **Extensible design** - Easy to add new models, languages, or correction methods
-- **Complete pipeline** - From raw images to publication-ready PDFs
-
-### When to Use What
-
-Quick reference guide:
-
-- **Pytesseract** - Clean typed documents, batch processing, speed matters, no GPU available
-- **LLM correction** - Production applications, quality-critical workflows, can afford ~$0.003-0.005/page (GPT-5)
-- **Unified viewer** - Development, QA, client demos, validating results
-- **Markdown formatting** - Creating publishable documents, generating structured output
-- **Benchmark tools** - Measuring accuracy, comparing methods, optimizing preprocessing
-
-### Next Steps
-
-To implement this in your own projects:
-
-1. **Experiment** - Try the pipeline on your documents to understand its strengths
-2. **Benchmark** - Measure accuracy on your specific use case with ground truth data
-3. **Optimize** - Fine-tune preprocessing parameters for your document types
-4. **Scale** - Implement parallel processing for production volumes (see Part IV)
-5. **Extend** - Add language support, vision correction, or custom fine-tuned models
-6. **Monitor** - Set up logging and confidence tracking for production deployment
-7. **Iterate** - Use the viewer to identify problem areas and refine your pipeline
+1. **Start simple** - Don't overcomplicate things. Try Pytesseract first and see if it's good enough.
+2. **Measure objectively** - Create ground truth for a few pages and calculate CER/WER. Subjective quality assessment is misleading.
+3. **Build validation tools** - A simple viewer will save you hours of debugging. Trust me on this.
+4. **Test LLM prompts thoroughly** - If you go the AI correction route, test extensively before processing your entire collection.
+5. **Keep the originals** - Save preprocessed images and intermediate outputs. You'll want them for debugging.
+6. **Document your process** - Future you (or future family members) will thank you for writing down what you did and why.
+7. **Accept imperfection** - Even at 91.8% accuracy, you'll have errors. Plan for human review of important sections.
 
 ### Resources and References
 
@@ -987,22 +1014,24 @@ This article's complete source code includes:
 - Docker configurations for scaling
 - CI/CD pipeline examples
 
-### About the Author
+### About This Project
 
-This framework was built to digitize historical family documents, specifically the autobiography of August Anton (1830-1911).
+I built this system to preserve my great-great-grandfather's autobiography, but I hope the techniques I developed help others preserve their own family histories. Too many historical documents sit in closets, slowly deteriorating, because digitization seems too complex or expensive.
 
-The project demonstrates that production-quality OCR doesn't require expensive commercial solutions. Open-source tools like Tesseract and GPT-5 can deliver excellent results when properly integrated.
+It doesn't have to be. With open-source tools like Tesseract and modern AI services like GPT-5, you can build a system that delivers production-quality results for less than a dollar per document. The real investment is your time learning how to do it right—which is why I wrote this article.
 
 ### Acknowledgments
 
-#### Technologies:
+This project built on the work of countless open-source contributors and researchers. Special thanks to:
 
-- Tesseract OCR (Google/contributors)
-- GPT-5 (OpenAI)
-- OpenCV
-- Streamlit
+- The Tesseract OCR team for building and maintaining an incredibly capable open-source OCR engine
+- OpenAI for GPT-5, which made intelligent error correction accessible
+- The OpenCV community for image processing tools
+- The Streamlit team for making it trivially easy to build interactive apps
 
-#### Research papers:
+And most importantly, thank you to my late uncle for preserving August Anton's autobiography and sharing it with the family. This project exists because he saw value in keeping family history alive.
+
+#### Key papers and documentation:
 
 - OpenAI. (2025). GPT-5 API Documentation.
 - Smith, R. (2007). An Overview of the Tesseract OCR Engine. ICDAR 2007.
